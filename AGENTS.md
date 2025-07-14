@@ -52,6 +52,44 @@ This document defines the agent behavior for using Codex within this repository.
 * Reflect only the current state—remove or archive outdated entries.
 * Maintain chronological clarity: new features append to the bottom of their module section.
 
+## Coding Standards & Guidelines
+
+- **Project Structure & Templates**
+  - All Python scripts follow `template.py` layout: shebang, sections (Imports → Logging → Globals → Classes/Functions → `main()`)
+  - No inline scripts; use `if __name__ == "__main__":` entry point
+- **Logging & Monitoring**
+  - Use `log_message(level, msg)` helper for every operational message
+  - Log exceptions with full traceback at `ERROR` level
+  - Enqueue logs for GUI display when applicable
+- **Error Handling & Validation**
+  - Wrap PST reads and parsing in `try/except`
+  - Validate input paths, memory usage, and PST integrity before processing
+  - Fail gracefully with user-friendly messages in GUI or console
+- **Dependency Minimization**
+  - Avoid heavy third-party libraries; prefer built-in modules (`os`, `re`, `email`)
+  - If PST parsing requires external library, wrap it behind a thin abstraction
+- **Signature Extraction Module**
+  - Expose a clean API: `extract_signatures(pst_path: str) → Iterator[Signature]`
+  - Signature objects must normalize whitespace and HTML tags
+  - Pluggable heuristics: allow adding new detection rules via a registry
+- **Deduplication Module**
+  - Provide `dedupe_signatures(signatures: Iterable[Signature]) → List[Signature]`
+  - Configurable fuzzy matching thresholds
+- **Search & Indexing**
+  - Abstract backend behind `SearchIndex` interface (`add()`, `query()`)
+  - Allow swapping SQLite FTS or other engine without code changes
+- **Tkinter GUI Guidelines**
+  - Follow `TemplateApp` styling: consistent frames, fonts, colors
+  - Disable “Start Extraction” button while a run is active
+  - Display real-time progress and logs in a scrollable text widget
+- **Threading & Responsiveness**
+  - Offload PST parsing and indexing to a background thread
+  - Use `stop_event` to signal cancellation; re-enable UI controls on stop
+- **Documentation & Testing**
+  - Docstrings for every public function/class
+  - Unit tests for extraction and deduplication logic
+  - End-to-end tests with sample PST files
+
 ---
 
 *This file is intended for internal use by Codex-powered agents to maintain a living project map.*

@@ -10,11 +10,3 @@ This repository will contain tooling for extracting or reconstructing signature 
 ## Getting Started
 
 Code implementation has not begun yet. Once available, setup instructions will be added here.
-
-## Contributing
-
-Contributions are welcome. Please open an issue to discuss proposed changes before submitting a pull request.
-
-## License
-
-This project is licensed under the MIT License.

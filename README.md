@@ -9,4 +9,14 @@ This repository will contain tooling for extracting or reconstructing signature 
 
 ## Getting Started
 
-Code implementation has not begun yet. Once available, setup instructions will be added here.
+The project now contains initial implementation of the core modules.
+
+### CLI Usage
+
+Run the extractor in headless mode:
+
+```bash
+python -m signature_recovery.cli.main --input path/to/mail.pst --output signatures.db
+```
+
+A minimal Tkinter GUI can be launched via `python -m signature_recovery.gui.app`.

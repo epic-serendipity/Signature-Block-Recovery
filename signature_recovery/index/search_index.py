@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""Search index interface and SQLite implementation."""
+
+import logging
+import sqlite3
+from typing import List
+
+from ..core.models import Signature
+from ..core.pst_parser import log_message
+
+
+class SearchIndex:
+    """Abstract search index."""
+
+    def add(self, signature: Signature) -> None:
+        raise NotImplementedError
+
+    def query(self, q: str) -> List[Signature]:
+        raise NotImplementedError
+
+
+class SQLiteFTSIndex(SearchIndex):
+    """SQLite full-text search implementation."""
+
+    def __init__(self, db_path: str) -> None:
+        self.conn = sqlite3.connect(db_path)
+        self._ensure_schema()
+
+    def _ensure_schema(self) -> None:
+        cur = self.conn.cursor()
+        cur.execute(
+            "CREATE VIRTUAL TABLE IF NOT EXISTS signatures "
+            "USING fts5(source_msg_id, timestamp, text)"
+        )
+        self.conn.commit()
+
+    def add(self, signature: Signature) -> None:
+        log_message(logging.DEBUG, "Indexing signature")
+        cur = self.conn.cursor()
+        cur.execute(
+            "INSERT INTO signatures (source_msg_id, timestamp, text) VALUES (?,?,?)",
+            (signature.source_msg_id, signature.timestamp or "", signature.text),
+        )
+        self.conn.commit()
+
+    def query(self, q: str) -> List[Signature]:
+        log_message(logging.DEBUG, "Querying index")
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT source_msg_id, timestamp, text FROM signatures WHERE signatures MATCH ?",
+            (q,),
+        )
+        rows = cur.fetchall()
+        return [Signature(text=row[2], source_msg_id=row[0], timestamp=row[1]) for row in rows]

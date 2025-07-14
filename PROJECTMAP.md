@@ -10,11 +10,43 @@
   - `AGENTS.md` — Codex automation rules
   - `PROJECTMAP.md` — project map and planning questions
 
-### Signature Recovery (planned)
+### Signature Recovery Core
 - **Features**
-  - Core algorithms for recovering signature blocks (**Planned**)
-- **Dependencies**
-  - None yet
+  - PST parsing interface (**Planned**)
+  - Signature extraction heuristics (**In Progress**)
+  - Deduplication utilities (**In Progress**)
+- **Files**
+  - `signature_recovery/core/models.py` — dataclass for signature records
+  - `signature_recovery/core/pst_parser.py` — stub PST parser
+  - `signature_recovery/core/extractor.py` — extraction logic with heuristics
+  - `signature_recovery/core/deduplicator.py` — fuzzy dedupe implementation
+
+### Indexing
+- **Features**
+  - Abstract search index interface (**Complete**)
+  - SQLite FTS backend (**Complete**)
+- **Files**
+  - `signature_recovery/index/search_index.py` — index classes
+  - `signature_recovery/index/indexer.py` — PST-to-index glue code
+
+### CLI
+- **Features**
+  - Headless extraction entry point (**Complete**)
+- **Files**
+  - `signature_recovery/cli/main.py` — argparse interface
+
+### GUI
+- **Features**
+  - Basic Tkinter application (**Complete**)
+- **Files**
+  - `signature_recovery/gui/app.py` — minimal GUI
+
+### Tests
+- **Features**
+  - Unit tests for extractor and deduplicator (**In Progress**)
+- **Files**
+  - `tests/test_extractor.py` — extraction tests
+  - `tests/test_deduplicator.py` — deduplication tests
 
 ## Open Planning Questions
 

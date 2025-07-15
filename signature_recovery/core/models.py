@@ -20,13 +20,28 @@ class SignatureMetadata:
 
 @dataclass
 class Signature:
-    """Represents an extracted signature block."""
+    """Represents an extracted signature block.
+
+    Attributes
+    ----------
+    text:
+        Raw signature text.
+    source_msg_id:
+        Identifier of the source message.
+    timestamp:
+        Timestamp of the message.
+    metadata:
+        Parsed ``SignatureMetadata``.
+    confidence:
+        Confidence score between 0.0 and 1.0.
+    """
 
     text: str
     source_msg_id: str
     timestamp: Optional[str] = None
     normalized_text: str = field(init=False)
     metadata: SignatureMetadata = field(default_factory=SignatureMetadata)
+    confidence: float = 0.0
 
     def __post_init__(self) -> None:
         self.normalized_text = self._normalize(self.text)

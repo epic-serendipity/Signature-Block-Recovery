@@ -33,11 +33,12 @@ def dedupe_signatures(
     """Collapse near-duplicate signatures based on a similarity threshold."""
     sig_list = list(signatures)
     uniques: List[Signature] = []
+    norms: List[str] = []
     for sig in sig_list:
         sig_norm = _normalize(sig.text)
         merged = False
-        for u in uniques:
-            ratio = _similar(sig_norm, _normalize(u.text))
+        for idx, u in enumerate(uniques):
+            ratio = _similar(sig_norm, norms[idx])
             if ratio >= threshold:
                 if sig.timestamp and (
                     not u.timestamp or sig.timestamp < u.timestamp
@@ -56,6 +57,7 @@ def dedupe_signatures(
                 break
         if not merged:
             uniques.append(sig)
+            norms.append(sig_norm)
     log_message(logging.INFO, f"Reduced {len(sig_list)} → {len(uniques)} signatures")
     return uniques
 

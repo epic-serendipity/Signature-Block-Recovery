@@ -20,3 +20,28 @@ python -m signature_recovery.cli.main --input path/to/mail.pst --output signatur
 ```
 
 A minimal Tkinter GUI can be launched via `python -m signature_recovery.gui.app`.
+
+## Core Architecture
+
+```mermaid
+graph TD
+    PSTParser --> SignatureExtractor
+    SignatureExtractor --> SignatureParser
+    SignatureParser --> SignatureDeduplicator
+```
+
+### Extraction Parameters
+
+Configuration is loaded from a YAML file. Copy `config.example.yaml` and adjust
+patterns or fallback line counts as needed:
+
+```yaml
+extraction:
+  max_fallback_lines: 5
+  signoff_patterns:
+    - "--\s*$"
+    - "regards"
+parser:
+  phone_patterns:
+    - "\(\d{3}\)\s*\d{3}-\d{4}"
+```

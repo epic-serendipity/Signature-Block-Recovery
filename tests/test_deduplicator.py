@@ -61,3 +61,14 @@ def test_metadata_merge_earliest_timestamp():
     result = dedupe_signatures([sig2, sig1], threshold=0.9)
     assert len(result) == 1
     assert result[0].timestamp == 1000
+
+
+def test_large_list_performance():
+    base = Signature(text="John Doe", source_msg_id="0", timestamp=0)
+    sigs = [
+        Signature(text=f"John Doe {i%5}", source_msg_id=str(i), timestamp=i)
+        for i in range(1000)
+    ]
+    sigs.append(base)
+    uniques = dedupe_signatures(sigs, threshold=0.8)
+    assert len(uniques) <= 5

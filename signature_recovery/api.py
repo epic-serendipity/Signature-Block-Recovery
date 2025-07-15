@@ -2,7 +2,12 @@
 """Minimal REST API for signature search."""
 
 # Imports
-from flask import Flask, request, jsonify
+try:
+    from flask import Flask, request, jsonify
+except ImportError as e:
+    raise RuntimeError(
+        "Flask is required to run the API. Please install with `pip install flask`."
+    ) from e
 
 from .index.search_index import SQLiteFTSIndex
 from template import log_message

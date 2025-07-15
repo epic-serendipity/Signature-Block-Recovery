@@ -51,15 +51,15 @@
 
 ### Exporter
 - **Features**
-  - CSV, JSON, Excel export utilities (**Planned**)
+  - CSV, JSON, Excel export utilities (**Complete**)
 - **Files**
-  - `signature_recovery/exporter.py` — export helpers (**Planned**)
+  - `signature_recovery/exporter.py` — export helpers (**Complete**)
 
 ### API
 - **Features**
-  - REST search endpoint with pagination (**Planned**)
+  - REST search endpoint with pagination (**Complete**)
 - **Files**
-  - `signature_recovery/api.py` — Flask API server (**Planned**)
+  - `signature_recovery/api.py` — Flask API server (**Complete**)
 
 ### Tests
 - **Features**
@@ -67,15 +67,15 @@
   - PST parser tests (**Complete**)
   - Benchmark tests for performance and index validity (**Planned**)
   - Parser metadata tests (**Planned**)
-  - Exporter and API tests (**Planned**)
+  - Exporter and API tests (**Complete**)
 - **Files**
   - `tests/test_extractor.py` — extraction tests
   - `tests/test_deduplicator.py` — deduplication tests (**Complete**)
   - `tests/test_pst_parser.py` — PST parser tests (**Complete**)
   - `tests/fixtures/html_bodies/` — sample HTML messages for extractor tests (**Complete**)
   - `tests/test_parser.py` — metadata parser examples (**Planned**)
-  - `tests/test_exporter.py` — export format tests (**Planned**)
-  - `tests/test_api.py` — REST API tests (**Planned**)
+  - `tests/test_exporter.py` — export format tests (**Complete**)
+  - `tests/test_api.py` — REST API tests (**Complete**)
 
 ### CI Configuration
 - **Features**

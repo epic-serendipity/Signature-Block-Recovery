@@ -1,8 +1,21 @@
 """Data models for signature recovery."""
 
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Optional
 import re
+
+
+@dataclass
+class SignatureMetadata:
+    """Structured metadata extracted from a signature."""
+
+    name: Optional[str] = None
+    title: Optional[str] = None
+    company: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    url: Optional[str] = None
+    address: Optional[str] = None
 
 
 @dataclass
@@ -13,7 +26,7 @@ class Signature:
     source_msg_id: str
     timestamp: Optional[str] = None
     normalized_text: str = field(init=False)
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: SignatureMetadata = field(default_factory=SignatureMetadata)
 
     def __post_init__(self) -> None:
         self.normalized_text = self._normalize(self.text)

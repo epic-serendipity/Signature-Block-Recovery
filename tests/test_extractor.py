@@ -9,6 +9,7 @@ def test_plain_text_only():
     sig = extractor.extract_from_body(body)
     assert sig is not None
     assert sig.text == "--\nJohn Doe"
+    assert sig.metadata.name == "John Doe"
 
 
 def _fixture(name: str) -> str:
@@ -22,6 +23,7 @@ def test_basic_html_normalization():
     sig = extractor.extract_from_body(body)
     assert sig is not None
     assert "John Doe" in sig.text
+    assert sig.metadata.name == "John Doe"
 
 
 def test_html_hr_boundary():
@@ -30,6 +32,7 @@ def test_html_hr_boundary():
     sig = extractor.extract_from_body(body)
     assert sig is not None
     assert "Jane Smith" in sig.text
+    assert "Jane" in (sig.metadata.name or sig.text)
 
 
 def test_html_signature_div():
@@ -38,3 +41,4 @@ def test_html_signature_div():
     sig = extractor.extract_from_body(body)
     assert sig is not None
     assert "Alice" in sig.text
+    assert sig.metadata.name.startswith("Alice")

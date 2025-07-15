@@ -7,7 +7,8 @@ import string
 from difflib import SequenceMatcher
 from typing import Iterable, List
 
-from .models import Signature
+from dataclasses import fields
+from .models import Signature, SignatureMetadata
 from .pst_parser import log_message
 
 
@@ -42,7 +43,11 @@ def dedupe_signatures(
                     not u.timestamp or sig.timestamp < u.timestamp
                 ):
                     u.timestamp = sig.timestamp
-                u.metadata.update(sig.metadata)
+                for f in fields(SignatureMetadata):
+                    if getattr(u.metadata, f.name) is None:
+                        val = getattr(sig.metadata, f.name)
+                        if val is not None:
+                            setattr(u.metadata, f.name, val)
                 log_message(
                     logging.INFO,
                     f"Merged signature {sig.source_msg_id} into {u.source_msg_id} (ratio={ratio:.2f})",

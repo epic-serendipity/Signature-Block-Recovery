@@ -36,6 +36,12 @@ class SignatureApp(tk.Tk):
         self.results_list.pack(fill=tk.BOTH, expand=True, padx=10)
         self.results_list.bind("<<ListboxSelect>>", self.show_signature)
 
+        self.page_var = tk.IntVar(value=1)
+        nav = tk.Frame(self)
+        tk.Button(nav, text="Prev", command=self.prev_page).pack(side=tk.LEFT)
+        tk.Button(nav, text="Next", command=self.next_page).pack(side=tk.LEFT)
+        nav.pack(pady=5)
+
         self.sig_text = tk.Text(self, height=6, state=tk.DISABLED)
         self.sig_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
@@ -43,7 +49,8 @@ class SignatureApp(tk.Tk):
         self.log_text.pack(fill=tk.BOTH, expand=True)
 
         self.index: SQLiteFTSIndex | None = None
-        self._results = []
+        self._results: list = []
+        self.page_size = 5
 
     def start(self) -> None:
         pst_path = filedialog.askopenfilename(title="Select PST")
@@ -73,11 +80,15 @@ class SignatureApp(tk.Tk):
         results = self.index.query(query) if self.index else []
         log_message("info", f"Search completed: {len(results)} hits")
         self._results = results
+        self.page_var.set(1)
         self.after(0, self.populate_results)
 
     def populate_results(self) -> None:
         self.results_list.delete(0, tk.END)
-        for sig in self._results:
+        page = self.page_var.get()
+        start = (page - 1) * self.page_size
+        end = start + self.page_size
+        for sig in self._results[start:end]:
             first = sig.text.splitlines()[0] if sig.text else ""
             label = f"{first} ({sig.timestamp})"
             self.results_list.insert(tk.END, label)
@@ -92,6 +103,16 @@ class SignatureApp(tk.Tk):
         self.sig_text.delete("1.0", tk.END)
         self.sig_text.insert(tk.END, sig.text)
         self.sig_text.config(state=tk.DISABLED)
+
+    def next_page(self) -> None:
+        if (self.page_var.get() * self.page_size) < len(self._results):
+            self.page_var.set(self.page_var.get() + 1)
+            self.populate_results()
+
+    def prev_page(self) -> None:
+        if self.page_var.get() > 1:
+            self.page_var.set(self.page_var.get() - 1)
+            self.populate_results()
 
 
 def main() -> None:

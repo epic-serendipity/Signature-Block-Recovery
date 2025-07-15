@@ -13,15 +13,23 @@
 ### Signature Recovery Core
 - **Features**
   - PST parsing interface (**Complete**)
-  - Signature extraction heuristics (**In Progress**)
+  - Folder/date range filters (**Complete**)
+  - Signature extraction heuristics (**Complete**)
   - Deduplication utilities (**Complete**)
-  - Structured signature parser (**In Progress**)
+  - Structured signature parser (**Complete**)
+  - Metadata parsing (**Complete**)
+  - Configuration & Tuning (**Complete**)
+  - Confidence Scoring (**Planned**)
+  - Metrics & Observability (**Planned**)
 - **Files**
   - `signature_recovery/core/models.py` — dataclass for signature records and messages (**Complete**)
   - `signature_recovery/core/pst_parser.py` — streaming PST parser (**Complete**)
   - `signature_recovery/core/extractor.py` — extraction logic with heuristics and HTML normalization (**Complete**)
   - `signature_recovery/core/deduplicator.py` — fuzzy dedupe implementation (**Complete**)
-  - `signature_recovery/core/parser.py` — parse names, emails, phones (**In Progress**)
+  - `signature_recovery/core/parser.py` — parse names, emails, phones (**Complete**)
+  - `signature_recovery/core/config.py` — load YAML configuration (**Complete**)
+  - `signature_recovery/core/metrics.py` — runtime metrics aggregation (**Planned**)
+  - `config.example.yaml` — sample configuration (**Complete**)
 
 ### Indexing
 - **Features**
@@ -67,14 +75,17 @@
   - Unit tests for extractor and deduplicator (**Complete**)
   - PST parser tests (**Complete**)
   - Benchmark tests for performance and index validity (**In Progress**)
-  - Parser metadata tests (**In Progress**)
+  - Parser metadata tests (**Complete**)
+  - Pipeline smoke test (**Complete**)
   - Exporter and API tests (**Complete**)
 - **Files**
   - `tests/test_extractor.py` — extraction tests
   - `tests/test_deduplicator.py` — deduplication tests (**Complete**)
   - `tests/test_pst_parser.py` — PST parser tests (**Complete**)
   - `tests/fixtures/html_bodies/` — sample HTML messages for extractor tests (**Complete**)
-  - `tests/test_parser.py` — metadata parser examples (**In Progress**)
+  - `tests/fixtures/html_bodies/nested.html` — nested tag HTML fixture (**Complete**)
+  - `tests/test_pipeline.py` — end-to-end pipeline test (**Complete**)
+  - `tests/test_parser.py` — metadata parser examples (**Complete**)
   - `tests/test_exporter.py` — export format tests (**Complete**)
   - `tests/test_api.py` — REST API tests (**Complete**)
   - `tests/benchmarks/test_large_pst.py` — large PST benchmark (**In Progress**)

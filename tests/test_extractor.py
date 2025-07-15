@@ -42,3 +42,19 @@ def test_html_signature_div():
     assert sig is not None
     assert "Alice" in sig.text
     assert sig.metadata.name.startswith("Alice")
+
+
+def test_last_lines_fallback():
+    body = "Hello\nPlease see below.\nJohn Doe\nEngineer\nACME Inc\n555-5555\njohn@acme.com"
+    extractor = SignatureExtractor()
+    sig = extractor.extract_from_body(body)
+    assert sig is not None
+    assert sig.metadata.email == "john@acme.com"
+
+
+def test_html_nested_entities():
+    body = _fixture("nested.html")
+    extractor = SignatureExtractor()
+    sig = extractor.extract_from_body(body)
+    assert sig is not None
+    assert "John & Co." in sig.text

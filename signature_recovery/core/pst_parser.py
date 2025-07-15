@@ -9,7 +9,7 @@ Message objects with body, msg_id, and timestamp.
 import os
 import logging
 import time
-from typing import Iterator
+from typing import Iterator, List, Optional
 
 from signature_recovery.core.models import Message
 from template import log_message  # our helper
@@ -37,20 +37,42 @@ class PSTParser:
         self._pst.open(pst_path)
         log_message("info", f"Opened PST file: {pst_path}")
 
-    def iter_messages(self) -> Iterator[Message]:
-        """Traverse all folders and messages in the PST."""
+    def iter_messages(
+        self,
+        folders: Optional[List[str]] = None,
+        start: Optional[float] = None,
+        end: Optional[float] = None,
+    ) -> Iterator[Message]:
+        """Traverse folders and yield ``Message`` objects.
+
+        Parameters
+        ----------
+        folders:
+            Optional list of folder names to include. If ``None`` all folders are
+            processed.
+        start:
+            Optional epoch timestamp; messages older than this are skipped.
+        end:
+            Optional epoch timestamp; messages newer than this are skipped.
+        """
         root = self._pst.get_root_folder()
         for folder in self._walk_folders(root):
+            if folders and folder.name not in folders:
+                continue
             for i in range(folder.get_number_of_sub_messages()):
                 try:
                     item = folder.get_sub_message(i)
+                    timestamp = getattr(item, "client_submit_time", None) or time.time()
+                    if start and timestamp < start:
+                        continue
+                    if end and timestamp > end:
+                        continue
                     body = item.plain_text_body or item.html_body or ""
                     msg_id = (
                         item.identifier.hex()
                         if hasattr(item, "identifier")
                         else str(time.time())
                     )
-                    timestamp = item.client_submit_time or time.time()
                     yield Message(body=body, msg_id=msg_id, timestamp=timestamp)
                 except Exception as e:
                     log_message(

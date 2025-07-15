@@ -3,21 +3,16 @@
 
 import logging
 import re
-from typing import List, Optional
+from typing import List, Optional, Tuple, Iterable, Dict, Any
+
+from html import unescape
 
 from .models import Signature
 from .parser import SignatureParser
+from .config import load_config
 from .pst_parser import log_message
 
 
-SIGN_OFF_PATTERNS = [
-    r"^--\s*$",
-    r"^thanks[,\s]*$",
-    r"^regards[,\s]*$",
-    r"^best[,\s]*$",
-    r"^cheers[,\s]*$",
-    r"^sincerely[,\s]*$",
-]
 MAX_SIGNATURE_LINES = 10
 
 
@@ -26,38 +21,70 @@ MAX_SIGNATURE_LINES = 10
 class Heuristic:
     """Boundary detection heuristic interface."""
 
-    def detect_boundary(self, lines: List[str], raw_body: str) -> Optional[int]:
+    confidence: float = 0.0
+
+    def detect_boundary(self, lines: List[str], raw_body: str) -> Optional[Tuple[int, float]]:
         raise NotImplementedError
 
 
 class RegexSignOffHeuristic(Heuristic):
     """Detects signature boundary via regex sign-off patterns."""
 
-    def detect_boundary(self, lines: List[str], raw_body: str) -> Optional[int]:
+    def __init__(self, patterns: Iterable[str]) -> None:
+        self.patterns = [re.compile(p, re.IGNORECASE) for p in patterns]
+        self.confidence = 0.9
+
+    def detect_boundary(self, lines: List[str], raw_body: str) -> Optional[Tuple[int, float]]:
         for i, line in enumerate(reversed(lines)):
-            if any(re.match(p, line.strip(), re.IGNORECASE) for p in SIGN_OFF_PATTERNS):
-                return len(lines) - i - 1
+            if any(p.search(line.strip()) for p in self.patterns):
+                return len(lines) - i - 1, self.confidence
         return None
 
 
 class HtmlDividerHeuristic(Heuristic):
     """Detects boundaries indicated by <hr> or signature divs in HTML."""
 
-    def detect_boundary(self, lines: List[str], raw_body: str) -> Optional[int]:
+    def __init__(self) -> None:
+        self.confidence = 0.7
+
+    def detect_boundary(self, lines: List[str], raw_body: str) -> Optional[Tuple[int, float]]:
         match = re.search(r'<hr\b|<div\s+class=\"signature\"', raw_body, re.IGNORECASE)
         if not match:
             return None
         before = raw_body[: match.start()]
         normalized_before = SignatureExtractor()._normalize_body(before)
         if not normalized_before:
-            return 0
-        return len(normalized_before.split("\n"))
+            return 0, self.confidence
+        return len(normalized_before.split("\n")), self.confidence
+
+
+class TrailingLinesHeuristic(Heuristic):
+    """Fallback heuristic returning start of last N non-blank lines."""
+
+    def __init__(self, max_lines: int) -> None:
+        self.max_lines = max_lines
+        self.confidence = 0.5
+
+    def detect_boundary(self, lines: List[str], raw_body: str) -> Optional[Tuple[int, float]]:
+        non_blank = [i for i, l in enumerate(lines) if l.strip()]
+        if not non_blank:
+            return None
+        start = non_blank[-self.max_lines] if len(non_blank) >= self.max_lines else non_blank[0]
+        return start, self.confidence
 
 
 class SignatureExtractor:
     """Extracts signatures from message bodies."""
 
-    heuristics: List[Heuristic] = [RegexSignOffHeuristic()]
+    def __init__(self, config: Dict[str, Any] | None = None) -> None:
+        self.config = config or load_config()
+        patterns = self.config.get("extraction", {}).get("signoff_patterns", [])
+        max_lines = self.config.get("extraction", {}).get("max_fallback_lines", 5)
+        self.heuristics: List[Heuristic] = [
+            RegexSignOffHeuristic(patterns),
+            HtmlDividerHeuristic(),
+            TrailingLinesHeuristic(max_lines),
+        ]
 
     def _normalize_body(self, body: str) -> str:
         """Strip HTML tags and collapse whitespace into normalized plain text."""
@@ -67,16 +94,37 @@ class SignatureExtractor:
             def __init__(self):
                 super().__init__()
                 self._parts: List[str] = []
+                self._skip = False
 
             def handle_starttag(self, tag: str, attrs):
-                if tag.lower() in {"br", "p", "div"}:
+                t = tag.lower()
+                if t in {"br", "p", "div", "li", "tr"}:
+                    self._parts.append("\n")
+                if t in {"style", "script"}:
+                    self._skip = True
+
+            def handle_startendtag(self, tag: str, attrs):
+                self.handle_starttag(tag, attrs)
+
+            def handle_endtag(self, tag: str) -> None:
+                t = tag.lower()
+                if t in {"style", "script"}:
+                    self._skip = False
+                if t in {"p", "div", "li", "tr"}:
                     self._parts.append("\n")
 
             def handle_data(self, data: str):
-                self._parts.append(data)
+                if not self._skip:
+                    self._parts.append(data)
+
+            def handle_entityref(self, name: str) -> None:
+                self._parts.append(unescape(f"&{name};"))
+
+            def handle_charref(self, name: str) -> None:
+                self._parts.append(unescape(f"&#{name};"))
 
             def get_data(self) -> str:
-                return ''.join(self._parts)
+                return "".join(self._parts)
 
         if '<html' in body.lower() or '<body' in body.lower():
             stripper = _Stripper()
@@ -91,9 +139,6 @@ class SignatureExtractor:
         return '\n'.join(line.strip() for line in collapsed.splitlines() if line.strip())
 
 
-    @classmethod
-    def register_heuristic(cls, heuristic: Heuristic) -> None:
-        cls.heuristics.append(heuristic)
 
     def extract_from_body(self, body: str) -> Optional[Signature]:
         """Convenience wrapper when message metadata is not needed."""
@@ -108,9 +153,11 @@ class SignatureExtractor:
         clean_body = self._normalize_body(body)
         lines = clean_body.split("\n") if clean_body else []
         boundary: Optional[int] = None
+        base_conf = 0.0
         for h in self.heuristics:
-            boundary = h.detect_boundary(lines, raw_body)
-            if boundary is not None:
+            result = h.detect_boundary(lines, raw_body)
+            if result is not None:
+                boundary, base_conf = result
                 break
         if boundary is None:
             return None
@@ -123,15 +170,14 @@ class SignatureExtractor:
         if len([l for l in collected if l.strip()]) < 2:
             return None
         text = "\n".join(collected).strip()
-        parser = SignatureParser()
+        parser = SignatureParser(self.config)
         meta = parser.parse(text)
+        confidence = min(1.0, base_conf + parser.last_score)
         return Signature(
             text=text,
             source_msg_id=message_id,
             timestamp=timestamp,
             metadata=meta,
+            confidence=confidence,
         )
 
-
-# register HTML divider heuristic
-SignatureExtractor.register_heuristic(HtmlDividerHeuristic())

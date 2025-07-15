@@ -33,7 +33,7 @@
 - **Features**
   - Headless extraction entry point (**Complete**)
 - **Files**
-  - `signature_recovery/cli/main.py` — argparse interface
+  - `signature_recovery/cli/main.py` — argparse interface with batch-processing flags and metrics (**Complete**)
 
 ### GUI
 - **Features**
@@ -57,6 +57,10 @@
   - Typical size, number, and location of `.pst` files to process
   - Expected volume of emails (e.g. millions of messages)
   - Target performance (e.g. signatures extracted per hour)
+- **Performance & Scaling**
+  - Target throughput (messages/sec) per thread
+  - Memory footprint per batch size
+  - Desired latency for small vs. large PSTs
 - **Extraction Logic & Heuristics**
   - Definition of a "signature block" (lines in plain text, HTML, attachments?)
   - Rules for start/end detection (e.g. detect delimiter lines like "—" or "Regards,")

@@ -3,7 +3,7 @@
 
 import logging
 import sqlite3
-from typing import List
+from typing import Iterable, List
 
 from ..core.models import Signature
 from ..core.pst_parser import log_message
@@ -14,6 +14,11 @@ class SearchIndex:
 
     def add(self, signature: Signature) -> None:
         raise NotImplementedError
+
+    def add_batch(self, signatures: Iterable[Signature]) -> None:
+        """Add multiple signatures at once."""
+        for sig in signatures:
+            self.add(sig)
 
     def query(self, q: str) -> List[Signature]:
         raise NotImplementedError
@@ -40,6 +45,18 @@ class SQLiteFTSIndex(SearchIndex):
         cur.execute(
             "INSERT INTO signatures (source_msg_id, timestamp, text) VALUES (?,?,?)",
             (signature.source_msg_id, signature.timestamp or "", signature.text),
+        )
+        self.conn.commit()
+
+    def add_batch(self, signatures: Iterable[Signature]) -> None:
+        log_message(logging.DEBUG, "Indexing batch of signatures")
+        cur = self.conn.cursor()
+        cur.executemany(
+            "INSERT INTO signatures (source_msg_id, timestamp, text) VALUES (?,?,?)",
+            [
+                (sig.source_msg_id, sig.timestamp or "", sig.text)
+                for sig in signatures
+            ],
         )
         self.conn.commit()
 

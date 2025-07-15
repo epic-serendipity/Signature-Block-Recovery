@@ -17,12 +17,18 @@ from template import log_message
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Recover signatures from a PST")
+    parser.add_argument(
+        "--threads",
+        "-t",
+        type=int,
+        default=1,
+        help="Number of worker threads for extraction",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     extract = sub.add_parser("extract", help="Index signatures from a PST")
     extract.add_argument("--input", required=True, help="Path to PST file")
     extract.add_argument("--output", required=True, dest="index_db", help="Path to SQLite FTS index")
-    extract.add_argument("--threads", type=int, default=1, help="Number of worker threads")
     extract.add_argument("--batch-size", type=int, default=1000, help="Messages per commit")
     extract.add_argument("--metrics", action="store_true", help="Print timing statistics")
     extract.add_argument("-v", "--verbose", action="count", default=0, help="Increase logging verbosity")

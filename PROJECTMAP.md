@@ -15,13 +15,13 @@
   - PST parsing interface (**Complete**)
   - Signature extraction heuristics (**In Progress**)
   - Deduplication utilities (**Complete**)
-  - Structured signature parser (**Planned**)
+  - Structured signature parser (**In Progress**)
 - **Files**
   - `signature_recovery/core/models.py` — dataclass for signature records and messages (**Complete**)
   - `signature_recovery/core/pst_parser.py` — streaming PST parser (**Complete**)
   - `signature_recovery/core/extractor.py` — extraction logic with heuristics and HTML normalization (**Complete**)
   - `signature_recovery/core/deduplicator.py` — fuzzy dedupe implementation (**Complete**)
-  - `signature_recovery/core/parser.py` — parse names, emails, phones (**Planned**)
+  - `signature_recovery/core/parser.py` — parse names, emails, phones (**In Progress**)
 
 ### Indexing
 - **Features**
@@ -43,11 +43,11 @@
 ### GUI
 - **Features**
   - Basic Tkinter application (**Complete**)
-  - Pagination controls and filters (**Planned**)
+  - Pagination controls and filters (**In Progress**)
 - **Files**
   - `signature_recovery/gui/app.py` — minimal GUI
-  - `signature_recovery/gui/app.py` — add search panel and results display (**Planned**)
-  - `signature_recovery/gui/app.py` — pagination support (**Planned**)
+  - `signature_recovery/gui/app.py` — add search panel and results display (**In Progress**)
+  - `signature_recovery/gui/app.py` — pagination support (**In Progress**)
 
 ### Exporter
 - **Features**
@@ -58,6 +58,7 @@
 ### API
 - **Features**
   - REST search endpoint with pagination (**Complete**)
+  - REST spec, filters, pagination (**In Progress**)
 - **Files**
   - `signature_recovery/api.py` — Flask API server (**Complete**)
 
@@ -65,22 +66,25 @@
 - **Features**
   - Unit tests for extractor and deduplicator (**Complete**)
   - PST parser tests (**Complete**)
-  - Benchmark tests for performance and index validity (**Planned**)
-  - Parser metadata tests (**Planned**)
+  - Benchmark tests for performance and index validity (**In Progress**)
+  - Parser metadata tests (**In Progress**)
   - Exporter and API tests (**Complete**)
 - **Files**
   - `tests/test_extractor.py` — extraction tests
   - `tests/test_deduplicator.py` — deduplication tests (**Complete**)
   - `tests/test_pst_parser.py` — PST parser tests (**Complete**)
   - `tests/fixtures/html_bodies/` — sample HTML messages for extractor tests (**Complete**)
-  - `tests/test_parser.py` — metadata parser examples (**Planned**)
+  - `tests/test_parser.py` — metadata parser examples (**In Progress**)
   - `tests/test_exporter.py` — export format tests (**Complete**)
   - `tests/test_api.py` — REST API tests (**Complete**)
+  - `tests/benchmarks/test_large_pst.py` — large PST benchmark (**In Progress**)
+  - `tests/benchmarks/test_index_size.py` — index size benchmark (**In Progress**)
 
 ### CI Configuration
 - **Features**
   - Editable install of package for tests (**Complete**)
   - CLI help-grep step with threads flag validation (**Complete**)
+  - Benchmark tests (**In Progress**)
 - **Files**
   - `.github/workflows/ci.yml` — CI workflow (**Complete**)
 

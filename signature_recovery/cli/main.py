@@ -11,6 +11,7 @@ from ..core.extractor import SignatureExtractor
 from ..core.pst_parser import PSTParser
 from ..core.models import Message, Signature
 from ..index.indexer import add_batch
+from ..exporter import export_to_csv, export_to_json, export_to_excel
 from ..index.search_index import SQLiteFTSIndex
 from template import log_message
 
@@ -37,6 +38,11 @@ def main() -> None:
     query_p.add_argument("--index", required=True, help="Path to SQLite FTS index")
     query_p.add_argument("--q", required=True, help="Search query")
     query_p.add_argument("-v", "--verbose", action="count", default=0, help="Increase logging verbosity")
+
+    export_p = sub.add_parser("export", help="Export signatures from an index")
+    export_p.add_argument("--index", required=True, help="Path to SQLite FTS index")
+    export_p.add_argument("--format", choices=["csv", "json", "excel"], required=True)
+    export_p.add_argument("--out", required=True, help="Output file path")
 
     args = parser.parse_args()
 
@@ -96,6 +102,16 @@ def main() -> None:
                 print(f"{sig.source_msg_id}\t{sig.timestamp}\t{sig.text}")
             else:
                 print(sig.text)
+    elif args.command == "export":
+        indexer = SQLiteFTSIndex(args.index)
+        results = indexer.query("*")
+        fmt = args.format
+        if fmt == "csv":
+            export_to_csv(results, args.out)
+        elif fmt == "json":
+            export_to_json(results, args.out)
+        else:
+            export_to_excel(results, args.out)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ import re
 from typing import List, Optional
 
 from .models import Signature
+from .parser import SignatureParser
 from .pst_parser import log_message
 
 
@@ -122,7 +123,14 @@ class SignatureExtractor:
         if len([l for l in collected if l.strip()]) < 2:
             return None
         text = "\n".join(collected).strip()
-        return Signature(text=text, source_msg_id=message_id, timestamp=timestamp)
+        parser = SignatureParser()
+        meta = parser.parse(text)
+        return Signature(
+            text=text,
+            source_msg_id=message_id,
+            timestamp=timestamp,
+            metadata=meta,
+        )
 
 
 # register HTML divider heuristic

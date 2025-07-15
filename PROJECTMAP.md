@@ -15,11 +15,13 @@
   - PST parsing interface (**Complete**)
   - Signature extraction heuristics (**In Progress**)
   - Deduplication utilities (**Complete**)
+  - Structured signature parser (**Planned**)
 - **Files**
   - `signature_recovery/core/models.py` — dataclass for signature records and messages (**Complete**)
   - `signature_recovery/core/pst_parser.py` — streaming PST parser (**Complete**)
   - `signature_recovery/core/extractor.py` — extraction logic with heuristics and HTML normalization (**Complete**)
   - `signature_recovery/core/deduplicator.py` — fuzzy dedupe implementation (**Complete**)
+  - `signature_recovery/core/parser.py` — parse names, emails, phones (**Planned**)
 
 ### Indexing
 - **Features**
@@ -33,6 +35,7 @@
 - **Features**
   - Headless extraction entry point (**Complete**)
   - Expose `query` subcommand for on-demand search (**Planned**)
+  - Export results to CSV/JSON/Excel (**Planned**)
 - **Files**
   - `signature_recovery/cli/main.py` — argparse interface with batch-processing flags and metrics (**Complete**)
   - `setup.py` — project packaging and console entry point (**Complete**)
@@ -40,20 +43,39 @@
 ### GUI
 - **Features**
   - Basic Tkinter application (**Complete**)
+  - Pagination controls and filters (**Planned**)
 - **Files**
   - `signature_recovery/gui/app.py` — minimal GUI
   - `signature_recovery/gui/app.py` — add search panel and results display (**Planned**)
+  - `signature_recovery/gui/app.py` — pagination support (**Planned**)
+
+### Exporter
+- **Features**
+  - CSV, JSON, Excel export utilities (**Planned**)
+- **Files**
+  - `signature_recovery/exporter.py` — export helpers (**Planned**)
+
+### API
+- **Features**
+  - REST search endpoint with pagination (**Planned**)
+- **Files**
+  - `signature_recovery/api.py` — Flask API server (**Planned**)
 
 ### Tests
 - **Features**
   - Unit tests for extractor and deduplicator (**Complete**)
   - PST parser tests (**Complete**)
   - Benchmark tests for performance and index validity (**Planned**)
+  - Parser metadata tests (**Planned**)
+  - Exporter and API tests (**Planned**)
 - **Files**
   - `tests/test_extractor.py` — extraction tests
   - `tests/test_deduplicator.py` — deduplication tests (**Complete**)
   - `tests/test_pst_parser.py` — PST parser tests (**Complete**)
   - `tests/fixtures/html_bodies/` — sample HTML messages for extractor tests (**Complete**)
+  - `tests/test_parser.py` — metadata parser examples (**Planned**)
+  - `tests/test_exporter.py` — export format tests (**Planned**)
+  - `tests/test_api.py` — REST API tests (**Planned**)
 
 ### CI Configuration
 - **Features**

@@ -2,19 +2,12 @@
 """Configuration loader for Signature Recovery Core."""
 
 # Imports
-import json
 import os
+import json
+import logging
 from typing import Any, Dict
 
-try:
-    import yaml  # type: ignore
-except Exception as e:  # pragma: no cover - runtime guard
-    raise RuntimeError(
-        "PyYAML is required for configuration support. Install with `pip install pyyaml`."
-    ) from e
-
-# Logging
-from template import log_message
+logger = logging.getLogger("config")
 
 # Globals
 DEFAULT_CONFIG: Dict[str, Any] = {
@@ -43,23 +36,28 @@ DEFAULT_CONFIG: Dict[str, Any] = {
 # Classes/Functions
 
 def load_config(path: str | None = None) -> Dict[str, Any]:
-    """Load YAML configuration from ``path`` if provided."""
-    cfg = json.loads(json.dumps(DEFAULT_CONFIG))  # deep copy
-    if path and os.path.isfile(path):
-        log_message("info", f"Loading config from {path}")
-        with open(path, "r", encoding="utf-8") as fh:
-            user = yaml.safe_load(fh) or {}
-        _merge(cfg, user)
-    return cfg
+    """Load configuration from a YAML file if provided, else return defaults."""
+    if path is None:
+        return DEFAULT_CONFIG
 
+    if not os.path.isfile(path):
+        logger.warning(f"Config file not found at {path}, using defaults")
+        return DEFAULT_CONFIG
 
-def _merge(target: Dict[str, Any], src: Dict[str, Any]) -> None:
-    """Merge ``src`` into ``target`` recursively."""
-    for key, val in src.items():
-        if isinstance(val, dict) and isinstance(target.get(key), dict):
-            _merge(target[key], val)
-        else:
-            target[key] = val
+    try:
+        import yaml
+    except ImportError as e:  # pragma: no cover - runtime guard
+        raise RuntimeError(
+            "PyYAML is required to load configuration files. "
+            "Please install with `pip install pyyaml`."
+        ) from e
+
+    with open(path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+
+    merged = DEFAULT_CONFIG.copy()
+    merged.update(cfg or {})
+    return merged
 
 
 def main() -> None:

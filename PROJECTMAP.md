@@ -18,7 +18,7 @@
   - Deduplication utilities (**Complete**)
   - Structured signature parser (**Complete**)
   - Metadata parsing (**Complete**)
-  - Configuration & Tuning (**In Progress**)
+  - Configuration & Tuning (**Complete**)
   - Confidence Scoring (**Planned**)
   - Metrics & Observability (**Planned**)
 - **Files**
@@ -27,9 +27,9 @@
   - `signature_recovery/core/extractor.py` — extraction logic with heuristics and HTML normalization (**Complete**)
   - `signature_recovery/core/deduplicator.py` — fuzzy dedupe implementation (**Complete**)
   - `signature_recovery/core/parser.py` — parse names, emails, phones (**Complete**)
-  - `signature_recovery/core/config.py` — load YAML configuration (**In Progress**)
+  - `signature_recovery/core/config.py` — load YAML configuration (**Complete**)
   - `signature_recovery/core/metrics.py` — runtime metrics aggregation (**Planned**)
-  - `config.example.yaml` — sample configuration (**In Progress**)
+  - `config.example.yaml` — sample configuration (**Complete**)
 
 ### Indexing
 - **Features**

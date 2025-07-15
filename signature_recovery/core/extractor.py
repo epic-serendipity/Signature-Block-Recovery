@@ -61,6 +61,30 @@ class SignatureExtractor:
 
     heuristics: List[Heuristic] = [RegexSignOffHeuristic()]
 
+    def _normalize_body(self, body: str) -> str:
+        """Return plain text with collapsed whitespace and consistent breaks."""
+        text = body.replace("\r\n", "\n").replace("\r", "\n")
+        if re.search(r"<[^>]+>", text, re.IGNORECASE):
+            text = re.sub(r"(?i)<br\s*/?>", "\n", text)
+            text = re.sub(r"(?i)</p>", "\n", text)
+            text = re.sub(r"(?i)</div>", "\n", text)
+            text = strip_tags(text)
+        text = re.sub(r"[ \t]+", " ", text)
+        text = re.sub(r"\n+", "\n", text)
+        text = re.sub(r" ?\n ?", "\n", text)
+        return text.strip()
+
+    def _html_boundary_hint(self, raw_body: str) -> Optional[int]:
+        """Return boundary index if HTML contains explicit signature markers."""
+        match = re.search(r"<hr\b|<div\s+class=\"signature\"", raw_body, re.IGNORECASE)
+        if not match:
+            return None
+        before = raw_body[: match.start()]
+        normalized_before = self._normalize_body(before)
+        if not normalized_before:
+            return 0
+        return len(normalized_before.split("\n"))
+
     @classmethod
     def register_heuristic(cls, heuristic: Heuristic) -> None:
         cls.heuristics.append(heuristic)
@@ -70,13 +94,15 @@ class SignatureExtractor:
     ) -> Optional[Signature]:
         """Return a signature if detected in ``body``."""
         log_message(logging.DEBUG, "Extracting signature")
-        clean_body = strip_tags(body)
-        lines = clean_body.strip().split("\n")
+        clean_body = self._normalize_body(body)
+        lines = clean_body.split("\n") if clean_body else []
         boundary: Optional[int] = None
         for h in self.heuristics:
             boundary = h.detect_boundary(lines)
             if boundary is not None:
                 break
+        if boundary is None:
+            boundary = self._html_boundary_hint(body)
         if boundary is None:
             return None
 

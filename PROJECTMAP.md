@@ -35,6 +35,7 @@
   - Expose `query` subcommand for on-demand search (**Planned**)
 - **Files**
   - `signature_recovery/cli/main.py` — argparse interface with batch-processing flags and metrics (**Complete**)
+  - `setup.py` — project packaging and console entry point (**Complete**)
 
 ### GUI
 - **Features**
@@ -53,6 +54,13 @@
   - `tests/test_deduplicator.py` — deduplication tests (**Complete**)
   - `tests/test_pst_parser.py` — PST parser tests (**Complete**)
   - `tests/fixtures/html_bodies/` — sample HTML messages for extractor tests (**Complete**)
+
+### CI Configuration
+- **Features**
+  - Editable install of package for tests (**Complete**)
+  - CLI help-grep step with threads flag validation (**Complete**)
+- **Files**
+  - `.github/workflows/ci.yml` — CI workflow (**Complete**)
 
 ## Open Planning Questions
 

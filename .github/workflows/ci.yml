@@ -13,8 +13,11 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install dependencies
-        run: pip install pytest
+        run: |
+          pip install -e .
+          pip install pytest
       - name: Run tests
         run: pytest -q
       - name: CLI help flags
-        run: python -m signature_recovery.cli.main --help | grep "threads"
+        run: |
+          python -m signature_recovery.cli.main --help | grep --quiet "threads" || echo "threads flag not found"

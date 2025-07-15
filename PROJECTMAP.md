@@ -32,6 +32,7 @@
 ### CLI
 - **Features**
   - Headless extraction entry point (**Complete**)
+  - Expose `query` subcommand for on-demand search (**Planned**)
 - **Files**
   - `signature_recovery/cli/main.py` — argparse interface with batch-processing flags and metrics (**Complete**)
 
@@ -40,11 +41,13 @@
   - Basic Tkinter application (**Complete**)
 - **Files**
   - `signature_recovery/gui/app.py` — minimal GUI
+  - `signature_recovery/gui/app.py` — add search panel and results display (**Planned**)
 
 ### Tests
 - **Features**
   - Unit tests for extractor and deduplicator (**Complete**)
   - PST parser tests (**Complete**)
+  - Benchmark tests for performance and index validity (**Planned**)
 - **Files**
   - `tests/test_extractor.py` — extraction tests
   - `tests/test_deduplicator.py` — deduplication tests (**Complete**)
@@ -92,3 +95,9 @@
   - Search/indexing integration
   - GUI proof-of-concept
   - Testing and performance tuning
+- **Search Functionality**
+  - Query syntax (full-text vs. fielded search)
+  - UI/UX requirements (pagination, sorting)
+- **Benchmark Targets**
+  - Minimum acceptable throughput
+  - Index size growth per signature

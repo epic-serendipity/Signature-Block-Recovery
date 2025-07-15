@@ -18,7 +18,7 @@
 - **Files**
   - `signature_recovery/core/models.py` — dataclass for signature records
   - `signature_recovery/core/pst_parser.py` — stub PST parser
-  - `signature_recovery/core/extractor.py` — extraction logic with heuristics and HTML normalization (**In Progress**)
+  - `signature_recovery/core/extractor.py` — extraction logic with heuristics and HTML normalization (**Complete**)
   - `signature_recovery/core/deduplicator.py` — fuzzy dedupe implementation
 
 ### Indexing
@@ -47,7 +47,7 @@
 - **Files**
   - `tests/test_extractor.py` — extraction tests
   - `tests/test_deduplicator.py` — deduplication tests
-  - `tests/fixtures/html_bodies/` — sample HTML messages for extractor tests (**Planned**)
+  - `tests/fixtures/html_bodies/` — sample HTML messages for extractor tests (**Complete**)
 
 ## Open Planning Questions
 

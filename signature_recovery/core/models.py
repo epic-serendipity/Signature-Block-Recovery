@@ -22,3 +22,12 @@ class Signature:
     def _normalize(text: str) -> str:
         clean = re.sub(r"\s+", " ", text)
         return clean.strip().lower()
+
+
+@dataclass
+class Message:
+    """Represents one email message extracted from a PST."""
+
+    body: str
+    msg_id: str
+    timestamp: float

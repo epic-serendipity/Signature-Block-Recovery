@@ -12,12 +12,12 @@
 
 ### Signature Recovery Core
 - **Features**
-  - PST parsing interface (**Planned**)
+  - PST parsing interface (**Complete**)
   - Signature extraction heuristics (**In Progress**)
   - Deduplication utilities (**Complete**)
 - **Files**
-  - `signature_recovery/core/models.py` — dataclass for signature records
-  - `signature_recovery/core/pst_parser.py` — stub PST parser
+  - `signature_recovery/core/models.py` — dataclass for signature records and messages (**Complete**)
+  - `signature_recovery/core/pst_parser.py` — streaming PST parser (**Complete**)
   - `signature_recovery/core/extractor.py` — extraction logic with heuristics and HTML normalization (**Complete**)
   - `signature_recovery/core/deduplicator.py` — fuzzy dedupe implementation (**Complete**)
 
@@ -44,9 +44,11 @@
 ### Tests
 - **Features**
   - Unit tests for extractor and deduplicator (**Complete**)
+  - PST parser tests (**Complete**)
 - **Files**
   - `tests/test_extractor.py` — extraction tests
   - `tests/test_deduplicator.py` — deduplication tests (**Complete**)
+  - `tests/test_pst_parser.py` — PST parser tests (**Complete**)
   - `tests/fixtures/html_bodies/` — sample HTML messages for extractor tests (**Complete**)
 
 ## Open Planning Questions

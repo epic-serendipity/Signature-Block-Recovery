@@ -15,7 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e .
-          pip install pytest
+          pip install pytest flask openpyxl pandas
       - name: Run tests
         run: pytest -q
       - name: CLI help flags

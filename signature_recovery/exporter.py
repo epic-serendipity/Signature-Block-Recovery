@@ -6,7 +6,12 @@ import csv
 import json
 from typing import Iterable
 
-from openpyxl import Workbook
+try:
+    from openpyxl import Workbook
+except ImportError as e:
+    raise RuntimeError(
+        "openpyxl is required for Excel export. Please install with `pip install openpyxl`."
+    ) from e
 
 from .core.models import Signature
 from template import log_message

@@ -175,8 +175,13 @@ class App(tk.Tk):
 
         self.detail_panel = DetailPanel(self)
         self.detail_panel.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
-
+        self.active = True
         self.after(100, self._poll_queue)
+
+    def close(self) -> None:
+        """Shut down polling loop and destroy the window."""
+        self.active = False
+        self.destroy()
 
     # Helpers -----------------------------------------------------------------
     def start_search(self) -> None:
@@ -196,6 +201,8 @@ class App(tk.Tk):
         log_message("info", f"Search completed: {len(results)} hits")
 
     def _poll_queue(self) -> None:
+        if not self.active:
+            return
         try:
             results = self.queue.get_nowait()
         except queue.Empty:

@@ -60,7 +60,7 @@
   - Sort options on columns (**Complete**)
 - **Files**
   - `signature_recovery/gui/app.py` — full-featured Tkinter application with modular panels (**Complete**)
-  - `tests/test_gui.py` — GUI integration tests (**In Progress**)
+  - `tests/test_gui.py` — GUI integration tests (**Complete**)
 
 ### Exporter
 - **Features**
@@ -111,6 +111,7 @@
   - Editable install of package for tests (**Complete**)
   - CLI help-grep step with threads flag validation (**Complete**)
   - Verify CLI entry point subcommands (**Complete**)
+  - Headless display support for GUI tests (**Complete**)
   - Benchmark tests (**In Progress**)
   - Benchmark CI job (nightly) (**Planned**)
 - **Files**

@@ -1,122 +1,311 @@
 #!/usr/bin/env python3
-"""Minimal Tkinter GUI for signature recovery."""
+"""Tkinter GUI with search, filters, pagination and sorting."""
 
+# Imports
+import logging
+import queue
 import threading
+from datetime import datetime
+from functools import partial
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import ttk
 
-from ..index.indexer import index_pst
-from ..index.search_index import SQLiteFTSIndex
+from ..index.search_index import SearchIndex, SQLiteFTSIndex
 from template import log_message
 
+# Logging configuration
+logging.basicConfig(level=logging.INFO)
 
-class SignatureApp(tk.Tk):
-    """Simple GUI using Tkinter."""
+# Global state
+DEFAULT_PAGE_SIZE = 5
 
-    def __init__(self) -> None:
+
+class SearchPanel(tk.Frame):
+    """Query entry and search trigger."""
+
+    def __init__(self, master: tk.Misc, on_search) -> None:
+        super().__init__(master)
+        tk.Label(self, text="Search:").pack(side=tk.LEFT, padx=5)
+        self.query_var = tk.StringVar()
+        self.entry = tk.Entry(self, textvariable=self.query_var)
+        self.entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.button = tk.Button(self, text="Search", command=on_search)
+        self.button.pack(side=tk.LEFT, padx=5)
+
+    def disable(self) -> None:
+        self.button.config(state=tk.DISABLED)
+        self.entry.config(state=tk.DISABLED)
+
+    def enable(self) -> None:
+        self.button.config(state=tk.NORMAL)
+        self.entry.config(state=tk.NORMAL)
+
+    def get_query(self) -> str:
+        return self.query_var.get().strip()
+
+
+class FilterPanel(tk.LabelFrame):
+    """Date range and metadata filters."""
+
+    def __init__(self, master: tk.Misc) -> None:
+        super().__init__(master, text="Filters")
+        top = tk.Frame(self)
+        tk.Label(top, text="Start YYYY-MM-DD:").pack(side=tk.LEFT)
+        self.start_var = tk.StringVar()
+        tk.Entry(top, textvariable=self.start_var, width=12).pack(side=tk.LEFT, padx=5)
+        tk.Label(top, text="End YYYY-MM-DD:").pack(side=tk.LEFT)
+        self.end_var = tk.StringVar()
+        tk.Entry(top, textvariable=self.end_var, width=12).pack(side=tk.LEFT, padx=5)
+        top.pack(fill=tk.X, pady=2)
+        lists = tk.Frame(self)
+        tk.Label(lists, text="Company").pack(side=tk.LEFT)
+        self.company = tk.Listbox(lists, selectmode=tk.MULTIPLE, height=4, exportselection=False)
+        self.company.pack(side=tk.LEFT, padx=5)
+        tk.Label(lists, text="Title").pack(side=tk.LEFT)
+        self.title = tk.Listbox(lists, selectmode=tk.MULTIPLE, height=4, exportselection=False)
+        self.title.pack(side=tk.LEFT, padx=5)
+        lists.pack(fill=tk.X, pady=2)
+
+    def set_options(self, companies, titles) -> None:
+        self.company.delete(0, tk.END)
+        for c in sorted(companies):
+            self.company.insert(tk.END, c)
+        self.title.delete(0, tk.END)
+        for t in sorted(titles):
+            self.title.insert(tk.END, t)
+
+    def get_filters(self) -> dict:
+        comps = [self.company.get(i) for i in self.company.curselection()]
+        titles = [self.title.get(i) for i in self.title.curselection()]
+        return {
+            "start": self.start_var.get().strip(),
+            "end": self.end_var.get().strip(),
+            "companies": comps,
+            "titles": titles,
+        }
+
+
+class ResultsPanel(tk.Frame):
+    """Treeview display of search results."""
+
+    def __init__(self, master: tk.Misc, on_select, on_sort) -> None:
+        super().__init__(master)
+        cols = ("Name", "Company", "Title", "Date", "Confidence")
+        self.tree = ttk.Treeview(self, columns=cols, show="headings", height=8)
+        for col in cols:
+            self.tree.heading(col, text=col, command=partial(on_sort, col))
+            self.tree.column(col, width=100, anchor="w")
+        self.tree.pack(fill=tk.BOTH, expand=True)
+        self.tree.bind("<<TreeviewSelect>>", lambda e: on_select())
+
+    def populate(self, signatures) -> None:
+        self.tree.delete(*self.tree.get_children())
+        for sig in signatures:
+            self.tree.insert("", tk.END, values=(
+                sig.metadata.name or "",
+                sig.metadata.company or "",
+                sig.metadata.title or "",
+                sig.timestamp or "",
+                f"{sig.confidence:.2f}",
+            ))
+
+
+class PaginationPanel(tk.Frame):
+    """Prev/Next buttons and page size selector."""
+
+    def __init__(self, master: tk.Misc, on_prev, on_next, on_size_change) -> None:
+        super().__init__(master)
+        self.prev_btn = tk.Button(self, text="Prev", command=on_prev)
+        self.prev_btn.pack(side=tk.LEFT, padx=2)
+        self.next_btn = tk.Button(self, text="Next", command=on_next)
+        self.next_btn.pack(side=tk.LEFT, padx=2)
+        self.size_var = tk.StringVar(value=str(DEFAULT_PAGE_SIZE))
+        self.size = ttk.Combobox(self, textvariable=self.size_var, values=["5", "10", "20"], width=3, state="readonly")
+        self.size.bind("<<ComboboxSelected>>", lambda e: on_size_change(int(self.size_var.get())))
+        self.size.pack(side=tk.LEFT, padx=5)
+        self.info = tk.Label(self, text="Page 1 of 1")
+        self.info.pack(side=tk.LEFT, padx=5)
+
+    def update_info(self, page: int, total: int) -> None:
+        self.info.config(text=f"Page {page} of {total}")
+
+
+class DetailPanel(tk.LabelFrame):
+    """Display full signature text."""
+
+    def __init__(self, master: tk.Misc) -> None:
+        super().__init__(master, text="Detail")
+        self.text = tk.Text(self, state=tk.DISABLED, height=6)
+        self.text.pack(fill=tk.BOTH, expand=True)
+
+    def show(self, signature) -> None:
+        self.text.config(state=tk.NORMAL)
+        self.text.delete("1.0", tk.END)
+        self.text.insert(tk.END, signature.text)
+        self.text.config(state=tk.DISABLED)
+
+
+class App(tk.Tk):
+    """Main Tk application."""
+
+    def __init__(self, index: SearchIndex | None = None) -> None:
         super().__init__()
         self.title("Signature Recovery")
-        self.geometry("500x400")
+        self.geometry("800x600")
 
-        # extraction controls
-        self.start_btn = tk.Button(self, text="Start Extraction", command=self.start)
-        self.start_btn.pack(pady=10)
+        self.index = index
+        self.queue: queue.Queue = queue.Queue()
+        self.sort_field = "Date"
+        self.sort_dir = "asc"
+        self.page_size = DEFAULT_PAGE_SIZE
+        self.current_page = 1
+        self.results = []
 
-        # search controls
-        self.search_frame = tk.Frame(self)
-        tk.Label(self.search_frame, text="Search Signatures:").pack(side=tk.LEFT)
-        self.search_var = tk.StringVar()
-        self.search_entry = tk.Entry(self.search_frame, textvariable=self.search_var)
-        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
-        self.search_btn = tk.Button(self.search_frame, text="Search", command=self.start_search)
-        self.search_btn.pack(side=tk.LEFT)
-        self.search_frame.pack(fill=tk.X, padx=10, pady=5)
+        self.search_panel = SearchPanel(self, self.start_search)
+        self.search_panel.pack(fill=tk.X, padx=5, pady=2)
 
-        self.results_list = tk.Listbox(self, height=6)
-        self.results_list.pack(fill=tk.BOTH, expand=True, padx=10)
-        self.results_list.bind("<<ListboxSelect>>", self.show_signature)
+        self.filter_panel = FilterPanel(self)
+        self.filter_panel.pack(fill=tk.X, padx=5, pady=2)
 
-        self.page_var = tk.IntVar(value=1)
-        nav = tk.Frame(self)
-        tk.Button(nav, text="Prev", command=self.prev_page).pack(side=tk.LEFT)
-        tk.Button(nav, text="Next", command=self.next_page).pack(side=tk.LEFT)
-        nav.pack(pady=5)
+        self.results_panel = ResultsPanel(self, self.select_result, self.change_sort)
+        self.results_panel.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
 
-        self.sig_text = tk.Text(self, height=6, state=tk.DISABLED)
-        self.sig_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        self.pagination_panel = PaginationPanel(self, self.prev_page, self.next_page, self.set_page_size)
+        self.pagination_panel.pack(fill=tk.X, padx=5, pady=2)
 
-        self.log_text = tk.Text(self, height=8)
-        self.log_text.pack(fill=tk.BOTH, expand=True)
+        self.detail_panel = DetailPanel(self)
+        self.detail_panel.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
 
-        self.index: SQLiteFTSIndex | None = None
-        self._results: list = []
-        self.page_size = 5
+        self.after(100, self._poll_queue)
 
-    def start(self) -> None:
-        pst_path = filedialog.askopenfilename(title="Select PST")
-        if not pst_path:
-            return
-        self.start_btn.config(state=tk.DISABLED)
-        thread = threading.Thread(target=self.run_extraction, args=(pst_path,), daemon=True)
-        thread.start()
-
-    def run_extraction(self, pst_path: str) -> None:
-        self.index = SQLiteFTSIndex("signatures.db")
-        index_pst(pst_path, self.index)
-        self.start_btn.config(state=tk.NORMAL)
-
+    # Helpers -----------------------------------------------------------------
     def start_search(self) -> None:
         if not self.index:
             return
-        query = self.search_var.get().strip()
-        if not query:
-            return
-        self.search_btn.config(state=tk.DISABLED)
-        thread = threading.Thread(target=self.run_search, args=(query,), daemon=True)
+        query = self.search_panel.get_query() or "*"
+        filters = self.filter_panel.get_filters()
+        self.search_panel.disable()
+        thread = threading.Thread(target=self._search_thread, args=(query, filters), daemon=True)
         thread.start()
 
-    def run_search(self, query: str) -> None:
+    def _search_thread(self, query: str, filters: dict) -> None:
         log_message("info", f"Search started: {query}")
         results = self.index.query(query) if self.index else []
+        results = self._apply_filters(results, filters)
+        self.queue.put(results)
         log_message("info", f"Search completed: {len(results)} hits")
-        self._results = results
-        self.page_var.set(1)
-        self.after(0, self.populate_results)
 
-    def populate_results(self) -> None:
-        self.results_list.delete(0, tk.END)
-        page = self.page_var.get()
-        start = (page - 1) * self.page_size
+    def _poll_queue(self) -> None:
+        try:
+            results = self.queue.get_nowait()
+        except queue.Empty:
+            pass
+        else:
+            self._process_results(results)
+            self.search_panel.enable()
+        self.after(100, self._poll_queue)
+
+    def _process_results(self, results) -> None:
+        self.results = self._sort_results(results)
+        companies = {s.metadata.company for s in results if s.metadata.company}
+        titles = {s.metadata.title for s in results if s.metadata.title}
+        self.filter_panel.set_options(companies, titles)
+        self.current_page = 1
+        self.show_page()
+
+    def _apply_filters(self, results, filters):
+        def in_range(ts: str) -> bool:
+            if not ts:
+                return True
+            try:
+                dt = datetime.fromisoformat(ts)
+            except ValueError:
+                return True
+            start = filters.get("start")
+            end = filters.get("end")
+            if start:
+                try:
+                    if dt < datetime.fromisoformat(start):
+                        return False
+                except ValueError:
+                    pass
+            if end:
+                try:
+                    if dt > datetime.fromisoformat(end):
+                        return False
+                except ValueError:
+                    pass
+            return True
+
+        companies = set(filters.get("companies", []))
+        titles = set(filters.get("titles", []))
+        out = []
+        for sig in results:
+            if companies and (sig.metadata.company or "") not in companies:
+                continue
+            if titles and (sig.metadata.title or "") not in titles:
+                continue
+            if not in_range(sig.timestamp or ""):
+                continue
+            out.append(sig)
+        return out
+
+    def _sort_results(self, results):
+        key_map = {
+            "Name": lambda s: s.metadata.name or "",
+            "Company": lambda s: s.metadata.company or "",
+            "Title": lambda s: s.metadata.title or "",
+            "Date": lambda s: s.timestamp or "",
+            "Confidence": lambda s: s.confidence,
+        }
+        reverse = self.sort_dir == "desc"
+        return sorted(results, key=key_map[self.sort_field], reverse=reverse)
+
+    def change_sort(self, field: str) -> None:
+        if self.sort_field == field:
+            self.sort_dir = "desc" if self.sort_dir == "asc" else "asc"
+        else:
+            self.sort_field = field
+            self.sort_dir = "asc"
+        self.results = self._sort_results(self.results)
+        self.show_page()
+
+    def set_page_size(self, size: int) -> None:
+        self.page_size = size
+        self.current_page = 1
+        self.show_page()
+
+    def show_page(self) -> None:
+        total_pages = max(1, (len(self.results) + self.page_size - 1) // self.page_size)
+        start = (self.current_page - 1) * self.page_size
         end = start + self.page_size
-        for sig in self._results[start:end]:
-            first = sig.text.splitlines()[0] if sig.text else ""
-            label = f"{first} ({sig.timestamp})"
-            self.results_list.insert(tk.END, label)
-        self.search_btn.config(state=tk.NORMAL)
-
-    def show_signature(self, event: tk.Event) -> None:
-        if not self.results_list.curselection():
-            return
-        idx = self.results_list.curselection()[0]
-        sig = self._results[idx]
-        self.sig_text.config(state=tk.NORMAL)
-        self.sig_text.delete("1.0", tk.END)
-        self.sig_text.insert(tk.END, sig.text)
-        self.sig_text.config(state=tk.DISABLED)
+        self.results_panel.populate(self.results[start:end])
+        self.pagination_panel.update_info(self.current_page, total_pages)
 
     def next_page(self) -> None:
-        if (self.page_var.get() * self.page_size) < len(self._results):
-            self.page_var.set(self.page_var.get() + 1)
-            self.populate_results()
+        total_pages = max(1, (len(self.results) + self.page_size - 1) // self.page_size)
+        if self.current_page < total_pages:
+            self.current_page += 1
+            self.show_page()
 
     def prev_page(self) -> None:
-        if self.page_var.get() > 1:
-            self.page_var.set(self.page_var.get() - 1)
-            self.populate_results()
+        if self.current_page > 1:
+            self.current_page -= 1
+            self.show_page()
+
+    def select_result(self) -> None:
+        items = self.results_panel.tree.selection()
+        if not items:
+            return
+        idx = self.results_panel.tree.index(items[0])
+        global_index = (self.current_page - 1) * self.page_size + idx
+        if 0 <= global_index < len(self.results):
+            self.detail_panel.show(self.results[global_index])
 
 
 def main() -> None:
-    app = SignatureApp()
+    index = SQLiteFTSIndex("signatures.db")
+    app = App(index)
     app.mainloop()
 
 

@@ -55,15 +55,12 @@
 ### GUI
 - **Features**
   - Basic Tkinter application (**Complete**)
-  - Pagination controls (**In Progress**)
-  - Filters & facets (date range, company, title) (**In Progress**)
-  - Sort options (**Planned**)
+  - Pagination controls and page size selector (**Complete**)
+  - Filters & facets (date range, company, title) (**Complete**)
+  - Sort options on columns (**Complete**)
 - **Files**
-  - `signature_recovery/gui/app.py` — minimal GUI
-  - `signature_recovery/gui/app.py` — add search panel and results display (**In Progress**)
-  - `signature_recovery/gui/app.py` — pagination support (**In Progress**)
-  - `signature_recovery/gui/app.py` — filters & facets UI (**In Progress**)
-  - `signature_recovery/gui/app.py` — sort controls (**Planned**)
+  - `signature_recovery/gui/app.py` — full-featured Tkinter application with modular panels (**Complete**)
+  - `tests/test_gui.py` — GUI integration tests (**In Progress**)
 
 ### Exporter
 - **Features**

@@ -42,7 +42,29 @@ Global flags such as `--threads`, `--batch-size`, `--min-confidence`, `--metrics
 and `--dump-metrics metrics.json` apply to all subcommands and control filtering
 and performance reporting.
 
-A minimal Tkinter GUI can be launched via `python -m signature_recovery.gui.app`.
+A Tkinter GUI can be launched via `python -m signature_recovery.gui.app`.
+
+## GUI Usage
+
+```
+┌─────────────── Search ────────────────┐
+│ [ query ________ ] [ Search ]          │
+├────────────── Filters ────────────────┤
+│ Start [YYYY-MM-DD] End [YYYY-MM-DD]   │
+│ Company [multi-select]                │
+│ Title   [multi-select]                │
+├────────────── Results ────────────────┤
+│ Name | Company | Title | Date | Conf. │
+│---------------------------------------│
+│ ...                                   │
+├──────────── Pagination ───────────────┤
+│ [Prev] [Next] PageSize [5▼] Page X/Y  │
+└───────────────────────────────────────┘
+```
+
+Use the search box to query the index. Filters can narrow results by date range,
+company, or title. Column headers are clickable to sort ascending/descending.
+Pagination controls step through result pages and adjust the page size.
 
 ## Core Architecture
 

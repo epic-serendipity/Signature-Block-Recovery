@@ -45,10 +45,12 @@
   - Expose `query` subcommand for on-demand search (**Complete**)
   - Export results to CSV/JSON/Excel (**Complete**)
   - Metrics dump (`--metrics`, `--dump-metrics`) (**Complete**)
+  - Version flag and standardized exit codes (**Complete**)
 - **Files**
   - `signature_recovery/cli/main.py` — full argparse interface with all subcommands and flags (**Complete**)
   - `tests/test_cli.py` — comprehensive CLI integration tests (**Complete**)
   - `setup.py` — project packaging and console entry point (**Complete**)
+  - `signature_recovery/__init__.py` — package metadata including version (**Complete**)
 
 ### GUI
 - **Features**
@@ -97,6 +99,7 @@
 - **Features**
   - Editable install of package for tests (**Complete**)
   - CLI help-grep step with threads flag validation (**Complete**)
+  - Verify CLI entry point subcommands (**Complete**)
   - Benchmark tests (**In Progress**)
 - **Files**
   - `.github/workflows/ci.yml` — CI workflow (**Complete**)

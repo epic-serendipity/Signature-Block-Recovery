@@ -14,6 +14,11 @@ The project now contains initial implementation of the core modules.
 ### CLI Usage
 
 The project ships a `recover-signatures` command line tool with three subcommands.
+Check the version at any time using:
+
+```bash
+recover-signatures --version
+```
 
 Run extraction on a PST file and build an index:
 
@@ -33,8 +38,9 @@ Export all signatures to CSV:
 recover-signatures export --index sigs.db --format csv --out sigs.csv
 ```
 
-Global flags like `--min-confidence`, `--metrics` and `--dump-metrics metrics.json` apply to subcommands
-and control filtering and performance reporting.
+Global flags such as `--threads`, `--batch-size`, `--min-confidence`, `--metrics`,
+and `--dump-metrics metrics.json` apply to all subcommands and control filtering
+and performance reporting.
 
 A minimal Tkinter GUI can be launched via `python -m signature_recovery.gui.app`.
 

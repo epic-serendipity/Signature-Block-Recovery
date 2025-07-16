@@ -22,3 +22,6 @@ jobs:
         run: |
           python -m signature_recovery.cli.main --help | grep --quiet "threads" || echo "threads flag not found"
           recover-signatures --help | grep -E "(extract|query|export)"
+      - name: Verify CLI entry point
+        run: |
+          recover-signatures --help | grep -E "extract|query|export|metrics"

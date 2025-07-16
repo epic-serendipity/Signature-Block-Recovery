@@ -68,6 +68,7 @@ def test_extract_query_export_flow(tmp_path):
     data = json.loads(metrics.read_text())
     assert data["messages"] == 2
     assert data["signatures_found"] >= 2
+    assert "Processed" in res.stdout
 
     res = _run([
         sys.executable,
@@ -129,4 +130,20 @@ def test_cli_error_conditions(tmp_path):
         "x",
     ])
     assert res.returncode != 0
+
+
+def test_version_flag():
+    res = _run([sys.executable, "-m", "signature_recovery.cli.main", "--version"])
+    assert res.returncode == 0
+    assert "0.1.0" in res.stdout
+
+
+def test_internal_error_exit_code(tmp_path):
+    script = (
+        "import sys, signature_recovery.cli.main as m;"
+        "m.handle_extract=lambda a: (_ for _ in ()).throw(RuntimeError('boom'));"
+        f"m.main(['extract','--input','{tmp_path}/x.pst','--index','{tmp_path}/x.db'])"
+    )
+    res = subprocess.run([sys.executable, "-c", script], text=True, capture_output=True)
+    assert res.returncode == 2
 

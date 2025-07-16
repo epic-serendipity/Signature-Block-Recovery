@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Iterable, List
 
 from template import log_message
+from .. import __version__
 
 from ..core.extractor import SignatureExtractor
 from ..core.deduplicator import dedupe_signatures
@@ -37,6 +38,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--metrics", action="store_true", help="Print timing statistics")
     parser.add_argument("--dump-metrics", help="Write aggregated metrics to JSON file")
     parser.add_argument("-v", "--verbose", action="count", default=0, help="Increase logging verbosity")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"recover-signatures {__version__}",
+        help="Show program version and exit",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     ex = sub.add_parser("extract", help="Index signatures from a PST file")
@@ -74,7 +81,13 @@ def _configure_logging(verbosity: int) -> None:
 
 
 def handle_extract(args: argparse.Namespace) -> int:
-    """Extract signatures from ``args.input`` and index them."""
+    """Extract signatures from ``args.input`` and index them.
+
+    Returns
+    -------
+    int
+        ``0`` on success, ``1`` on user error.
+    """
     try:
         parser = PSTParser(args.input)
     except Exception as exc:  # File not found or pypff issues
@@ -137,7 +150,13 @@ def handle_extract(args: argparse.Namespace) -> int:
 
 
 def handle_query(args: argparse.Namespace) -> int:
-    """Query the index and print matching signatures."""
+    """Query the index and print matching signatures.
+
+    Returns
+    -------
+    int
+        ``0`` on success, ``1`` if the index is missing.
+    """
     if not os.path.exists(args.index):
         log_message(logging.ERROR, f"Index not found: {args.index}")
         return 1
@@ -154,7 +173,13 @@ def handle_query(args: argparse.Namespace) -> int:
 
 
 def handle_export(args: argparse.Namespace) -> int:
-    """Export signatures from ``args.index`` to ``args.out``."""
+    """Export signatures from ``args.index`` to ``args.out``.
+
+    Returns
+    -------
+    int
+        ``0`` on success, ``1`` if the index is missing.
+    """
     if not os.path.exists(args.index):
         log_message(logging.ERROR, f"Index not found: {args.index}")
         return 1
@@ -178,16 +203,23 @@ def handle_export(args: argparse.Namespace) -> int:
 # main
 
 def main(argv: Iterable[str] | None = None) -> None:
-    """Entry point for the ``recover-signatures`` command."""
+    """Entry point for the ``recover-signatures`` command.
+
+    Returns exit code ``0`` on success, ``1`` for user errors and ``2`` for
+    unexpected internal errors.
+    """
     parser = _build_parser()
-    args = parser.parse_args(argv)
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:  # argparse errors
+        sys.exit(1 if exc.code != 0 else 0)
     _configure_logging(args.verbose)
     try:
         code = args.func(args)
     except Exception as exc:  # pragma: no cover - defensive
         log_message(logging.ERROR, str(exc))
         logging.exception("cli error")
-        code = 1
+        code = 2
     sys.exit(code)
 
 

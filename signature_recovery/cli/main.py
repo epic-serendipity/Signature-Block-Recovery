@@ -1,137 +1,228 @@
 #!/usr/bin/env python3
 """Command-line interface for signature recovery."""
 
+# Imports
 import argparse
+import json
 import logging
+import os
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import List
+from typing import Iterable, List
+
+from template import log_message
+from .. import __version__
 
 from ..core.extractor import SignatureExtractor
-from ..core.pst_parser import PSTParser
+from ..core.deduplicator import dedupe_signatures
 from ..core.metrics import Metrics
 from ..core.models import Message, Signature
-from ..index.indexer import add_batch
+from ..core.pst_parser import PSTParser
 from ..exporter import export_to_csv, export_to_json, export_to_excel
+from ..index.indexer import add_batch
 from ..index.search_index import SQLiteFTSIndex
-from template import log_message
 
+# Logging
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Recover signatures from a PST")
+# Globals
+
+# Classes/Functions
+
+def _build_parser() -> argparse.ArgumentParser:
+    """Return the top-level argument parser."""
+    parser = argparse.ArgumentParser(description="Recover signatures from data")
+    parser.add_argument("--threads", "-t", type=int, default=1, help="Worker threads for extraction")
+    parser.add_argument("--batch-size", type=int, default=1000, help="Messages per commit")
+    parser.add_argument("--min-confidence", type=float, default=0.0, help="Minimum confidence to keep a signature")
+    parser.add_argument("--metrics", action="store_true", help="Print timing statistics")
+    parser.add_argument("--dump-metrics", help="Write aggregated metrics to JSON file")
+    parser.add_argument("-v", "--verbose", action="count", default=0, help="Increase logging verbosity")
     parser.add_argument(
-        "--threads",
-        "-t",
-        type=int,
-        default=1,
-        help="Number of worker threads for extraction",
+        "--version",
+        action="version",
+        version=f"recover-signatures {__version__}",
+        help="Show program version and exit",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    extract = sub.add_parser("extract", help="Index signatures from a PST")
-    extract.add_argument("--input", required=True, help="Path to PST file")
-    extract.add_argument("--output", required=True, dest="index_db", help="Path to SQLite FTS index")
-    extract.add_argument("--batch-size", type=int, default=1000, help="Messages per commit")
-    extract.add_argument("--metrics", action="store_true", help="Print timing statistics")
-    extract.add_argument("--min-confidence", type=float, default=0.0, help="Minimum confidence to keep a signature")
-    extract.add_argument("--dump-metrics", help="Write aggregated metrics to JSON file")
-    extract.add_argument("-v", "--verbose", action="count", default=0, help="Increase logging verbosity")
+    ex = sub.add_parser("extract", help="Index signatures from a PST file")
+    ex.add_argument("--input", required=True, help="Path to PST file")
+    ex.add_argument("--index", required=True, help="Path to SQLite FTS index")
+    ex.set_defaults(func=handle_extract)
 
-    query_p = sub.add_parser("query", help="Search an existing index")
-    query_p.add_argument("--index", required=True, help="Path to SQLite FTS index")
-    query_p.add_argument("--q", required=True, help="Search query")
-    query_p.add_argument("-v", "--verbose", action="count", default=0, help="Increase logging verbosity")
+    q = sub.add_parser("query", help="Search an existing index")
+    q.add_argument("--index", required=True, help="Path to SQLite FTS index")
+    q.add_argument("--q", required=True, help="Search query")
+    q.add_argument("--page", type=int, default=1, help="Page number")
+    q.add_argument("--size", type=int, default=10, help="Results per page")
+    q.add_argument("--verbose", action="store_true", help="Show metadata columns")
+    q.set_defaults(func=handle_query)
 
-    export_p = sub.add_parser("export", help="Export signatures from an index")
-    export_p.add_argument("--index", required=True, help="Path to SQLite FTS index")
-    export_p.add_argument("--format", choices=["csv", "json", "excel"], required=True)
-    export_p.add_argument("--out", required=True, help="Output file path")
+    exp = sub.add_parser("export", help="Export signatures from an index")
+    exp.add_argument("--index", required=True, help="Path to SQLite FTS index")
+    exp.add_argument("--format", choices=["csv", "json", "excel"], required=True, help="Output format")
+    exp.add_argument("--out", required=True, help="Output file path")
+    exp.add_argument("--q", help="Optional search query filter")
+    exp.add_argument("--date-from", type=float, help="Start timestamp filter")
+    exp.add_argument("--date-to", type=float, help="End timestamp filter")
+    exp.set_defaults(func=handle_export)
 
-    args = parser.parse_args()
+    return parser
 
+
+def _configure_logging(verbosity: int) -> None:
     level = logging.WARNING
-    if args.verbose == 1:
+    if verbosity == 1:
         level = logging.INFO
-    elif args.verbose >= 2:
+    elif verbosity >= 2:
         level = logging.DEBUG
     logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
 
-    if args.command == "extract":
-        parser_obj = PSTParser(args.input)
-        extractor = SignatureExtractor()
-        indexer = SQLiteFTSIndex(args.index_db)
-        metrics = Metrics()
 
-        start = time.time()
-        batch: List[Signature] = []
+def handle_extract(args: argparse.Namespace) -> int:
+    """Extract signatures from ``args.input`` and index them.
 
-        def worker(msg: Message) -> Signature | None:
-            begin = time.time()
-            try:
-                sig = extractor.extract_signature(msg.body, msg.msg_id, msg.timestamp)
-            except Exception:
-                log_message(logging.ERROR, f"Failed to process message {msg.msg_id}")
-                logging.exception("worker error")
-                metrics.record(msg.msg_id, False, 0.0, len(msg.body.splitlines()), 0.0)
-                return None
-            elapsed_ms = (time.time() - begin) * 1000
-            metrics.record(
-                msg.msg_id,
-                sig is not None,
-                sig.confidence if sig else 0.0,
-                len(msg.body.splitlines()),
-                elapsed_ms,
-            )
-            return sig
+    Returns
+    -------
+    int
+        ``0`` on success, ``1`` on user error.
+    """
+    try:
+        parser = PSTParser(args.input)
+    except Exception as exc:  # File not found or pypff issues
+        log_message(logging.ERROR, str(exc))
+        return 1
 
-        with ThreadPoolExecutor(max_workers=args.threads) as pool:
-            for sig in pool.map(worker, parser_obj.iter_messages()):
-                if sig and sig.confidence >= args.min_confidence:
-                    batch.append(sig)
-                if len(batch) >= args.batch_size:
-                    add_batch(indexer, batch)
-                    log_message(logging.INFO, f"Committed {len(batch)} signatures")
-                    batch.clear()
+    extractor = SignatureExtractor()
+    indexer = SQLiteFTSIndex(args.index)
+    metrics = Metrics()
+    start = time.time()
+    batch: List[Signature] = []
 
-        if batch:
-            add_batch(indexer, batch)
-            log_message(logging.INFO, f"Committed {len(batch)} signatures")
+    def worker(msg: Message) -> Signature | None:
+        begin = time.time()
+        try:
+            sig = extractor.extract_signature(msg.body, msg.msg_id, msg.timestamp)
+        except Exception as e:  # pragma: no cover - unexpected parse errors
+            log_message(logging.ERROR, f"Failed to process message {msg.msg_id}")
+            logging.exception("worker error")
+            metrics.record(msg.msg_id, False, 0.0, len(msg.body.splitlines()), 0.0)
+            return None
+        elapsed_ms = (time.time() - begin) * 1000
+        metrics.record(
+            msg.msg_id,
+            sig is not None,
+            sig.confidence if sig else 0.0,
+            len(msg.body.splitlines()),
+            elapsed_ms,
+        )
+        return sig
 
-        elapsed = time.time() - start
-        summary = metrics.summary()
-        if args.metrics:
-            msg_rate = summary["messages"] / elapsed if elapsed else 0
-            sig_rate = summary["signatures_found"] / elapsed if elapsed else 0
-            print(
-                f"Processed {summary['messages']} messages in {elapsed:.2f} seconds ({msg_rate:.0f} msg/sec)"
-            )
-            print(
-                f"Extracted {summary['signatures_found']} signatures ({sig_rate:.0f} sig/sec), avg conf {summary['avg_confidence']:.2f}"
-            )
-        if args.dump_metrics:
-            import json
+    with ThreadPoolExecutor(max_workers=args.threads) as pool:
+        for sig in pool.map(worker, parser.iter_messages()):
+            if sig and sig.confidence >= args.min_confidence:
+                batch.append(sig)
+            if len(batch) >= args.batch_size:
+                uniques = dedupe_signatures(batch)
+                add_batch(indexer, uniques)
+                log_message(logging.INFO, f"Committed {len(uniques)} signatures")
+                batch.clear()
 
-            with open(args.dump_metrics, "w", encoding="utf-8") as fh:
-                json.dump(summary, fh, indent=2)
-    elif args.command == "query":
-        indexer = SQLiteFTSIndex(args.index)
-        results = indexer.query(args.q)
-        for sig in results:
-            if args.verbose:
-                print(f"{sig.source_msg_id}\t{sig.timestamp}\t{sig.text}")
-            else:
-                print(sig.text)
-    elif args.command == "export":
-        indexer = SQLiteFTSIndex(args.index)
-        results = indexer.query("*")
-        fmt = args.format
-        if fmt == "csv":
-            export_to_csv(results, args.out)
-        elif fmt == "json":
-            export_to_json(results, args.out)
+    if batch:
+        uniques = dedupe_signatures(batch)
+        add_batch(indexer, uniques)
+        log_message(logging.INFO, f"Committed {len(uniques)} signatures")
+
+    elapsed = time.time() - start
+    summary = metrics.summary()
+    if args.metrics:
+        msg_rate = summary["messages"] / elapsed if elapsed else 0
+        sig_rate = summary["signatures_found"] / elapsed if elapsed else 0
+        print(
+            f"Processed {summary['messages']} messages in {elapsed:.2f} seconds ({msg_rate:.0f} msg/sec)")
+        print(
+            f"Extracted {summary['signatures_found']} signatures ({sig_rate:.0f} sig/sec), avg conf {summary['avg_confidence']:.2f}")
+    if args.dump_metrics:
+        with open(args.dump_metrics, "w", encoding="utf-8") as fh:
+            json.dump(summary, fh, indent=2)
+    return 0
+
+
+def handle_query(args: argparse.Namespace) -> int:
+    """Query the index and print matching signatures.
+
+    Returns
+    -------
+    int
+        ``0`` on success, ``1`` if the index is missing.
+    """
+    if not os.path.exists(args.index):
+        log_message(logging.ERROR, f"Index not found: {args.index}")
+        return 1
+    indexer = SQLiteFTSIndex(args.index)
+    results = indexer.query(args.q)
+    results = [s for s in results if s.confidence >= args.min_confidence]
+    start = (args.page - 1) * args.size
+    for sig in results[start : start + args.size]:
+        if args.verbose:
+            print(f"{sig.source_msg_id}\t{sig.timestamp}\t{sig.text}", flush=True)
         else:
-            export_to_excel(results, args.out)
+            print(sig.text, flush=True)
+    return 0
 
 
-if __name__ == "__main__":
+def handle_export(args: argparse.Namespace) -> int:
+    """Export signatures from ``args.index`` to ``args.out``.
+
+    Returns
+    -------
+    int
+        ``0`` on success, ``1`` if the index is missing.
+    """
+    if not os.path.exists(args.index):
+        log_message(logging.ERROR, f"Index not found: {args.index}")
+        return 1
+    indexer = SQLiteFTSIndex(args.index)
+    q = args.q or "*"
+    results = [s for s in indexer.query(q) if s.confidence >= args.min_confidence]
+    if args.date_from:
+        results = [s for s in results if float(s.timestamp or 0) >= args.date_from]
+    if args.date_to:
+        results = [s for s in results if float(s.timestamp or 0) <= args.date_to]
+    fmt = args.format
+    if fmt == "csv":
+        export_to_csv(results, args.out)
+    elif fmt == "json":
+        export_to_json(results, args.out)
+    else:
+        export_to_excel(results, args.out)
+    return 0
+
+
+# main
+
+def main(argv: Iterable[str] | None = None) -> None:
+    """Entry point for the ``recover-signatures`` command.
+
+    Returns exit code ``0`` on success, ``1`` for user errors and ``2`` for
+    unexpected internal errors.
+    """
+    parser = _build_parser()
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:  # argparse errors
+        sys.exit(1 if exc.code != 0 else 0)
+    _configure_logging(args.verbose)
+    try:
+        code = args.func(args)
+    except Exception as exc:  # pragma: no cover - defensive
+        log_message(logging.ERROR, str(exc))
+        logging.exception("cli error")
+        code = 2
+    sys.exit(code)
+
+
+if __name__ == "__main__":  # pragma: no cover - manual use
     main()
+

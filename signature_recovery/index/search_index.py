@@ -3,9 +3,10 @@
 
 import logging
 import sqlite3
+import json
 from typing import Iterable, List
 
-from ..core.models import Signature
+from ..core.models import Signature, SignatureMetadata
 from ..core.pst_parser import log_message
 
 
@@ -35,7 +36,9 @@ class SQLiteFTSIndex(SearchIndex):
         cur = self.conn.cursor()
         cur.execute(
             "CREATE VIRTUAL TABLE IF NOT EXISTS signatures "
-            "USING fts5(source_msg_id, timestamp, text)"
+            "USING fts5("
+            "source_msg_id, timestamp, text, confidence UNINDEXED, metadata UNINDEXED"
+            ")"
         )
         self.conn.commit()
 
@@ -43,8 +46,15 @@ class SQLiteFTSIndex(SearchIndex):
         log_message(logging.DEBUG, "Indexing signature")
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO signatures (source_msg_id, timestamp, text) VALUES (?,?,?)",
-            (signature.source_msg_id, signature.timestamp or "", signature.text),
+            "INSERT INTO signatures (source_msg_id, timestamp, text, confidence, metadata)"
+            " VALUES (?,?,?,?,?)",
+            (
+                signature.source_msg_id,
+                signature.timestamp or "",
+                signature.text,
+                signature.confidence,
+                json.dumps(signature.metadata.__dict__),
+            ),
         )
         self.conn.commit()
 
@@ -52,9 +62,16 @@ class SQLiteFTSIndex(SearchIndex):
         log_message(logging.DEBUG, "Indexing batch of signatures")
         cur = self.conn.cursor()
         cur.executemany(
-            "INSERT INTO signatures (source_msg_id, timestamp, text) VALUES (?,?,?)",
+            "INSERT INTO signatures (source_msg_id, timestamp, text, confidence, metadata)"
+            " VALUES (?,?,?,?,?)",
             [
-                (sig.source_msg_id, sig.timestamp or "", sig.text)
+                (
+                    sig.source_msg_id,
+                    sig.timestamp or "",
+                    sig.text,
+                    sig.confidence,
+                    json.dumps(sig.metadata.__dict__),
+                )
                 for sig in signatures
             ],
         )
@@ -63,9 +80,27 @@ class SQLiteFTSIndex(SearchIndex):
     def query(self, q: str) -> List[Signature]:
         log_message(logging.DEBUG, "Querying index")
         cur = self.conn.cursor()
-        cur.execute(
-            "SELECT source_msg_id, timestamp, text FROM signatures WHERE signatures MATCH ?",
-            (q,),
-        )
+        if q == "*" or not q.strip():
+            cur.execute(
+                "SELECT source_msg_id, timestamp, text, confidence, metadata FROM signatures"
+            )
+        else:
+            cur.execute(
+                "SELECT source_msg_id, timestamp, text, confidence, metadata "
+                "FROM signatures WHERE signatures MATCH ?",
+                (q,),
+            )
         rows = cur.fetchall()
-        return [Signature(text=row[2], source_msg_id=row[0], timestamp=row[1]) for row in rows]
+        result = []
+        for row in rows:
+            meta = SignatureMetadata(**json.loads(row[4])) if row[4] else SignatureMetadata()
+            result.append(
+                Signature(
+                    text=row[2],
+                    source_msg_id=row[0],
+                    timestamp=row[1],
+                    metadata=meta,
+                    confidence=float(row[3]),
+                )
+            )
+        return result

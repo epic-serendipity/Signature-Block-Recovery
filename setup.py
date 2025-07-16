@@ -4,6 +4,7 @@ setup(
     name="signature_recovery",
     version="0.1.0",
     packages=find_packages(),
+    py_modules=["template"],
     install_requires=[
         "flask>=2.0.0",       # for signature_recovery.api
         "openpyxl>=3.0.0",    # for signature_recovery.exporter Excel support

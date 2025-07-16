@@ -29,7 +29,7 @@ class SQLiteFTSIndex(SearchIndex):
     """SQLite full-text search implementation."""
 
     def __init__(self, db_path: str) -> None:
-        self.conn = sqlite3.connect(db_path)
+        self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self._ensure_schema()
 
     def _ensure_schema(self) -> None:

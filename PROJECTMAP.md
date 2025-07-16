@@ -55,11 +55,15 @@
 ### GUI
 - **Features**
   - Basic Tkinter application (**Complete**)
-  - Pagination controls and filters (**In Progress**)
+  - Pagination controls (**In Progress**)
+  - Filters & facets (date range, company, title) (**In Progress**)
+  - Sort options (**Planned**)
 - **Files**
   - `signature_recovery/gui/app.py` — minimal GUI
   - `signature_recovery/gui/app.py` — add search panel and results display (**In Progress**)
   - `signature_recovery/gui/app.py` — pagination support (**In Progress**)
+  - `signature_recovery/gui/app.py` — filters & facets UI (**In Progress**)
+  - `signature_recovery/gui/app.py` — sort controls (**Planned**)
 
 ### Exporter
 - **Features**
@@ -74,6 +78,11 @@
 - **Files**
   - `signature_recovery/api.py` — Flask API server (**Complete**)
 
+### Storage & Search Backend
+- **Features**
+  - Search Backend Comparison (**Planned**)
+  - Abstracted SearchIndex interface (**Complete**)
+
 ### Tests
 - **Features**
   - Unit tests for extractor and deduplicator (**Complete**)
@@ -82,6 +91,9 @@
   - Parser metadata tests (**Complete**)
   - Pipeline smoke test (**Complete**)
   - Exporter and API tests (**Complete**)
+  - CLI integration tests (**Complete**)
+  - Confidence scoring tests (**Planned**)
+  - Metrics aggregation tests (**Planned**)
 - **Files**
   - `tests/test_extractor.py` — extraction tests
   - `tests/test_deduplicator.py` — deduplication tests (**Complete**)
@@ -94,6 +106,8 @@
   - `tests/test_api.py` — REST API tests (**Complete**)
   - `tests/benchmarks/test_large_pst.py` — large PST benchmark (**In Progress**)
   - `tests/benchmarks/test_index_size.py` — index size benchmark (**In Progress**)
+  - `tests/test_confidence.py` — confidence scoring logic tests (**Planned**)
+  - `tests/test_metrics.py` — metrics aggregation tests (**Planned**)
 
 ### CI Configuration
 - **Features**
@@ -101,6 +115,7 @@
   - CLI help-grep step with threads flag validation (**Complete**)
   - Verify CLI entry point subcommands (**Complete**)
   - Benchmark tests (**In Progress**)
+  - Benchmark CI job (nightly) (**Planned**)
 - **Files**
   - `.github/workflows/ci.yml` — CI workflow (**Complete**)
 

@@ -21,3 +21,4 @@ jobs:
       - name: CLI help flags
         run: |
           python -m signature_recovery.cli.main --help | grep --quiet "threads" || echo "threads flag not found"
+          recover-signatures --help | grep -E "(extract|query|export)"

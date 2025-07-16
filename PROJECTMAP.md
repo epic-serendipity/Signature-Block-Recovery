@@ -42,10 +42,12 @@
 ### CLI
 - **Features**
   - Headless extraction entry point (**Complete**)
-  - Expose `query` subcommand for on-demand search (**Planned**)
-  - Export results to CSV/JSON/Excel (**Planned**)
+  - Expose `query` subcommand for on-demand search (**Complete**)
+  - Export results to CSV/JSON/Excel (**Complete**)
+  - Metrics dump (`--metrics`, `--dump-metrics`) (**Complete**)
 - **Files**
-  - `signature_recovery/cli/main.py` — argparse interface with batch-processing flags and metrics (**Complete**)
+  - `signature_recovery/cli/main.py` — full argparse interface with all subcommands and flags (**Complete**)
+  - `tests/test_cli.py` — comprehensive CLI integration tests (**Complete**)
   - `setup.py` — project packaging and console entry point (**Complete**)
 
 ### GUI

@@ -13,11 +13,28 @@ The project now contains initial implementation of the core modules.
 
 ### CLI Usage
 
-Run the extractor in headless mode:
+The project ships a `recover-signatures` command line tool with three subcommands.
+
+Run extraction on a PST file and build an index:
 
 ```bash
-python -m signature_recovery.cli.main --input path/to/mail.pst --output signatures.db
+recover-signatures extract --input mail.pst --index sigs.db --threads 4 --batch-size 500
 ```
+
+Search the index for a term:
+
+```bash
+recover-signatures query --index sigs.db --q "John Doe" --page 1 --size 5
+```
+
+Export all signatures to CSV:
+
+```bash
+recover-signatures export --index sigs.db --format csv --out sigs.csv
+```
+
+Global flags like `--min-confidence`, `--metrics` and `--dump-metrics metrics.json` apply to subcommands
+and control filtering and performance reporting.
 
 A minimal Tkinter GUI can be launched via `python -m signature_recovery.gui.app`.
 

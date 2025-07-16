@@ -107,38 +107,63 @@
 ## Open Planning Questions
 
 - **Data Sources & Scale**
-  - Typical size, number, and location of `.pst` files to process
+  - Typical PST size: 2,000,000 KB to 5,000,000 KB
   - Expected volume of emails (e.g. millions of messages)
-  - Target performance (e.g. signatures extracted per hour)
+  - Throughput target: ≥1 PST per hour (scalable to more if possible)
 - **Performance & Scaling**
   - Target throughput (messages/sec) per thread
   - Memory footprint per batch size
   - Desired latency for small vs. large PSTs
 - **Extraction Logic & Heuristics**
-  - Definition of a "signature block" (lines in plain text, HTML, attachments?)
+  - Signature block definition: lines of plain text only
   - Rules for start/end detection (e.g. detect delimiter lines like "—" or "Regards,")
+  - Search scope: Any substring match within a block returns the entire signature
   - Expected false-positive rate and how to tune heuristics
 - **Deduplication Criteria**
   - What constitutes a duplicate signature (exact text match, fuzzy match, normalized fields)
+  - Mode selection: Allow user to choose between Exact or Fuzzy matching
   - Tolerance for minor variations (e.g. different titles, phone formats)
 - **Storage & Search Backend**
   - Target searchable format (SQLite, full-text index, Elasticsearch, etc.)
   - Query patterns (search by name, company, domain)
   - Retention and archival policies
+  - Search Backend Comparison (**Planned**)
+    - SQLite FTS5
+      - Pros: zero-setup, ACID, built-in full-text, single file
+      - Cons: limited distributed and concurrent performance
+    - Elasticsearch/OpenSearch
+      - Pros: distributed scale, rich DSL, REST API
+      - Cons: requires separate servers, operational overhead
+    - Whoosh
+      - Pros: pure-Python, embedded
+      - Cons: slower on large data
+    - SQLite + JSON blobs
+      - Pros: simplicity
+      - Cons: only `LIKE` queries, no ranking
+    - In-memory custom index
+      - Pros: fastest small-scale
+      - Cons: volatile, memory-heavy
+    - Recommendation: Start with SQLite FTS5; abstract via `SearchIndex` for future ES migration.
 - **CLI vs. GUI Requirements**
-  - Will there be a desktop GUI for ad-hoc extraction?
+  - GUI: Python-based desktop application only
   - Command-line support and batch scheduling
 - **Platform & Dependencies**
-  - Supported OSes (Windows, Linux, macOS)
-  - Python version constraints (3.8+?)
-  - Allowed third-party modules (pst-parser, regex libraries)
-- **Error Handling & Logging**
-  - Failure modes (corrupt PST, malformed messages)
-  - Retry strategies and reporting
-  - Log verbosity levels and log file rotation policy
+  - Primary OS: Windows (should still run on Linux/macOS)
+  - Python version: No strict constraint—use the easiest supported version
+  - Third-party libraries: Allowed but kept to a minimum; installers/requirements must be user-friendly for non-technical users
+- **Error Handling & Logging** (**Planned**)
+  - Layered exception handling at each pipeline stage (I/O, parsing, extraction, dedupe) with recoverable errors logged as `WARNING` and fatal errors as `ERROR`
+  - Structured logs (JSON or key-value) including context (`msg_id`, `heuristic_used`, `duration_ms`, `confidence`)
+  - Log levels: `DEBUG` for internals, `INFO` for progress, `WARNING` for recoverable skips, `ERROR/CRITICAL` for unrecoverable conditions
+  - Handlers:
+    - Console (INFO+, DEBUG if `--verbose`)
+    - Rotating file handler (all levels)
+  - Retries: Exponential back-off for transient I/O errors
+  - GUI alerts: Show warnings/errors in a dedicated "Alerts" panel
 - **Security & Privacy**
   - Handling of sensitive data (PII) in signatures
   - Access controls on extracted data
+  - Data handling: No external data export; all processing is local
 - **Timeline & Milestones**
   - Prototype extraction engine
   - Deduplication module

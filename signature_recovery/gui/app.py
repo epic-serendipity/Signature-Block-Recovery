@@ -17,7 +17,7 @@ from template import log_message
 logging.basicConfig(level=logging.INFO)
 
 # Global state
-DEFAULT_PAGE_SIZE = 5
+DEFAULT_PAGE_SIZE = 10
 
 
 class SearchPanel(tk.Frame):
@@ -120,11 +120,27 @@ class PaginationPanel(tk.Frame):
         self.next_btn = tk.Button(self, text="Next", command=on_next)
         self.next_btn.pack(side=tk.LEFT, padx=2)
         self.size_var = tk.StringVar(value=str(DEFAULT_PAGE_SIZE))
-        self.size = ttk.Combobox(self, textvariable=self.size_var, values=["5", "10", "20"], width=3, state="readonly")
+        self.size = ttk.Combobox(
+            self,
+            textvariable=self.size_var,
+            values=["10", "25", "50", "100"],
+            width=4,
+            state="readonly",
+        )
         self.size.bind("<<ComboboxSelected>>", lambda e: on_size_change(int(self.size_var.get())))
         self.size.pack(side=tk.LEFT, padx=5)
         self.info = tk.Label(self, text="Page 1 of 1")
         self.info.pack(side=tk.LEFT, padx=5)
+
+    def disable(self) -> None:
+        self.prev_btn.config(state=tk.DISABLED)
+        self.next_btn.config(state=tk.DISABLED)
+        self.size.config(state="disabled")
+
+    def enable(self) -> None:
+        self.prev_btn.config(state=tk.NORMAL)
+        self.next_btn.config(state=tk.NORMAL)
+        self.size.config(state="readonly")
 
     def update_info(self, page: int, total: int) -> None:
         self.info.config(text=f"Page {page} of {total}")
@@ -161,7 +177,7 @@ class App(tk.Tk):
         self.current_page = 1
         self.results = []
 
-        self.search_panel = SearchPanel(self, self.start_search)
+        self.search_panel = SearchPanel(self, self.on_search)
         self.search_panel.pack(fill=tk.X, padx=5, pady=2)
 
         self.filter_panel = FilterPanel(self)
@@ -176,20 +192,26 @@ class App(tk.Tk):
         self.detail_panel = DetailPanel(self)
         self.detail_panel.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
         self.active = True
-        self.after(100, self._poll_queue)
+        self.poll_id = self.after(100, self._poll_queue)
 
     def close(self) -> None:
         """Shut down polling loop and destroy the window."""
         self.active = False
+        if hasattr(self, "poll_id"):
+            try:
+                self.after_cancel(self.poll_id)
+            except Exception:
+                pass
         self.destroy()
 
     # Helpers -----------------------------------------------------------------
-    def start_search(self) -> None:
+    def on_search(self) -> None:
         if not self.index:
             return
         query = self.search_panel.get_query() or "*"
         filters = self.filter_panel.get_filters()
         self.search_panel.disable()
+        self.pagination_panel.disable()
         thread = threading.Thread(target=self._search_thread, args=(query, filters), daemon=True)
         thread.start()
 
@@ -210,7 +232,8 @@ class App(tk.Tk):
         else:
             self._process_results(results)
             self.search_panel.enable()
-        self.after(100, self._poll_queue)
+            self.pagination_panel.enable()
+        self.poll_id = self.after(100, self._poll_queue)
 
     def _process_results(self, results) -> None:
         self.results = self._sort_results(results)

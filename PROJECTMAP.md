@@ -60,7 +60,7 @@
   - Sort options on columns (**Complete**)
 - **Files**
   - `signature_recovery/gui/app.py` — full-featured Tkinter application with modular panels; FilterPanel dynamic population (**Complete**)
-  - `tests/test_gui.py` — GUI integration tests (**Complete**)
+  - `tests/test_gui.py` — GUI integration tests with event-loop sync (**Complete**)
 
 ### Exporter
 - **Features**

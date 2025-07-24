@@ -58,6 +58,8 @@ def test_search_results(tmp_path, display):
     app = App(idx)
     app.search_panel.query_var.set("*")
     app.on_search()
+    app.update_idletasks()
+    app.update()
     for _ in range(20):
         app.update()
         if app.results:
@@ -74,6 +76,8 @@ def test_pagination_next(tmp_path, display):
     app.set_page_size(2)
     app.search_panel.query_var.set("*")
     app.on_search()
+    app.update_idletasks()
+    app.update()
     for _ in range(20):
         app.update()
         if app.results:
@@ -92,6 +96,8 @@ def test_filter_company(tmp_path, display):
     app = App(idx)
     app.search_panel.query_var.set("*")
     app.on_search()
+    app.update_idletasks()
+    app.update()
     for _ in range(20):
         app.update()
         if app.results:
@@ -101,6 +107,8 @@ def test_filter_company(tmp_path, display):
     comp_index = app.filter_panel.company_listbox.get(0, tk.END).index("ACME")
     app.filter_panel.company_listbox.selection_set(comp_index)
     app.on_search()
+    app.update_idletasks()
+    app.update()
     for _ in range(20):
         app.update()
         if app.results:

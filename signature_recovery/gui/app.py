@@ -59,32 +59,36 @@ class FilterPanel(tk.LabelFrame):
         top.pack(fill=tk.X, pady=2)
         lists = tk.Frame(self)
         tk.Label(lists, text="Company").pack(side=tk.LEFT)
-        self.company = tk.Listbox(lists, selectmode=tk.MULTIPLE, height=4, exportselection=False)
-        self.company.pack(side=tk.LEFT, padx=5)
+        self.company_listbox = tk.Listbox(
+            lists, selectmode=tk.MULTIPLE, height=4, exportselection=False
+        )
+        self.company_listbox.pack(side=tk.LEFT, padx=5)
         tk.Label(lists, text="Title").pack(side=tk.LEFT)
-        self.title = tk.Listbox(lists, selectmode=tk.MULTIPLE, height=4, exportselection=False)
-        self.title.pack(side=tk.LEFT, padx=5)
+        self.title_listbox = tk.Listbox(
+            lists, selectmode=tk.MULTIPLE, height=4, exportselection=False
+        )
+        self.title_listbox.pack(side=tk.LEFT, padx=5)
         lists.pack(fill=tk.X, pady=2)
 
     def set_companies(self, companies) -> None:
         """Populate company filter options."""
-        self.company.delete(0, tk.END)
+        self.company_listbox.delete(0, tk.END)
         for c in companies:
-            self.company.insert(tk.END, c)
+            self.company_listbox.insert(tk.END, c)
 
     def set_titles(self, titles) -> None:
         """Populate title filter options."""
-        self.title.delete(0, tk.END)
+        self.title_listbox.delete(0, tk.END)
         for t in titles:
-            self.title.insert(tk.END, t)
+            self.title_listbox.insert(tk.END, t)
 
     def set_options(self, companies, titles) -> None:
         self.set_companies(sorted(companies))
         self.set_titles(sorted(titles))
 
     def get_filters(self) -> dict:
-        comps = [self.company.get(i) for i in self.company.curselection()]
-        titles = [self.title.get(i) for i in self.title.curselection()]
+        comps = [self.company_listbox.get(i) for i in self.company_listbox.curselection()]
+        titles = [self.title_listbox.get(i) for i in self.title_listbox.curselection()]
         return {
             "start": self.start_var.get().strip(),
             "end": self.end_var.get().strip(),
@@ -238,19 +242,19 @@ class App(tk.Tk):
         except queue.Empty:
             pass
         else:
-            self._process_results(results)
+            self._display_results(results)
             self.search_panel.enable()
             self.pagination_panel.enable()
         self.poll_id = self.after(100, self._poll_queue)
 
-    def _process_results(self, results) -> None:
+    def _display_results(self, results) -> None:
         self.results = self._sort_results(results)
-        companies = sorted({s.metadata.company or "" for s in results})
-        titles = sorted({s.metadata.title or "" for s in results})
-        self.filter_panel.set_companies(companies)
-        self.filter_panel.set_titles(titles)
         self.current_page = 1
         self.show_page()
+        companies = sorted({s.metadata.company or "" for s in self.results})
+        titles = sorted({s.metadata.title or "" for s in self.results})
+        self.filter_panel.set_companies(companies)
+        self.filter_panel.set_titles(titles)
 
     def _apply_filters(self, results, filters):
         def in_range(ts: str) -> bool:

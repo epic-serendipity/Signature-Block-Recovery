@@ -55,11 +55,11 @@
 ### GUI
 - **Features**
   - Basic Tkinter application (**Complete**)
-  - Pagination controls and page size selector (**In Progress**)
-  - Filters & facets (date range, company, title) (**In Progress**)
-  - Sort options on columns (**In Progress**)
+  - Pagination controls and page size selector (**Complete**)
+  - Filters & facets (date range, company, title) (**Complete**)
+  - Sort options on columns (**Complete**)
 - **Files**
-  - `signature_recovery/gui/app.py` — full-featured Tkinter application with modular panels; FilterPanel dynamic population (**In Progress**)
+  - `signature_recovery/gui/app.py` — full-featured Tkinter application with modular panels; FilterPanel dynamic population (**Complete**)
   - `tests/test_gui.py` — GUI integration tests (**Complete**)
 
 ### Exporter

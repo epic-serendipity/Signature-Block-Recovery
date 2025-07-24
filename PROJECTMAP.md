@@ -59,8 +59,8 @@
   - Filters & facets (date range, company, title) (**In Progress**)
   - Sort options on columns (**In Progress**)
 - **Files**
-  - `signature_recovery/gui/app.py` — full-featured Tkinter application with modular panels (**Complete**)
-  - `tests/test_gui.py` — GUI integration tests (**Planned**)
+  - `signature_recovery/gui/app.py` — full-featured Tkinter application with modular panels; FilterPanel dynamic population (**In Progress**)
+  - `tests/test_gui.py` — GUI integration tests (**Complete**)
 
 ### Exporter
 - **Features**

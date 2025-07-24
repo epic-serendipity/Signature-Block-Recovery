@@ -66,13 +66,21 @@ class FilterPanel(tk.LabelFrame):
         self.title.pack(side=tk.LEFT, padx=5)
         lists.pack(fill=tk.X, pady=2)
 
-    def set_options(self, companies, titles) -> None:
+    def set_companies(self, companies) -> None:
+        """Populate company filter options."""
         self.company.delete(0, tk.END)
-        for c in sorted(companies):
+        for c in companies:
             self.company.insert(tk.END, c)
+
+    def set_titles(self, titles) -> None:
+        """Populate title filter options."""
         self.title.delete(0, tk.END)
-        for t in sorted(titles):
+        for t in titles:
             self.title.insert(tk.END, t)
+
+    def set_options(self, companies, titles) -> None:
+        self.set_companies(sorted(companies))
+        self.set_titles(sorted(titles))
 
     def get_filters(self) -> dict:
         comps = [self.company.get(i) for i in self.company.curselection()]
@@ -237,9 +245,10 @@ class App(tk.Tk):
 
     def _process_results(self, results) -> None:
         self.results = self._sort_results(results)
-        companies = {s.metadata.company for s in results if s.metadata.company}
-        titles = {s.metadata.title for s in results if s.metadata.title}
-        self.filter_panel.set_options(companies, titles)
+        companies = sorted({s.metadata.company or "" for s in results})
+        titles = sorted({s.metadata.title or "" for s in results})
+        self.filter_panel.set_companies(companies)
+        self.filter_panel.set_titles(titles)
         self.current_page = 1
         self.show_page()
 

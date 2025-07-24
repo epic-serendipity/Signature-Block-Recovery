@@ -97,6 +97,7 @@ def test_filter_company(tmp_path, display):
         if app.results:
             break
         time.sleep(0.05)
+    assert "ACME" in app.filter_panel.company.get(0, tk.END)
     comp_index = app.filter_panel.company.get(0, tk.END).index("ACME")
     app.filter_panel.company.selection_set(comp_index)
     app.on_search()

@@ -78,18 +78,35 @@ class SQLiteFTSIndex(SearchIndex):
         self.conn.commit()
 
     def query(self, q: str | None = None) -> List[Signature]:
+        """Return all matching signatures.
+
+        ``q`` may be ``None`` to retrieve every row. ``"*"`` or blank strings are
+        also treated as ``None`` for convenience.
+        """
+
         log_message(logging.DEBUG, "Querying index")
         cur = self.conn.cursor()
-        if q is None or q == "*" or not str(q).strip():
-            cur.execute(
-                "SELECT source_msg_id, timestamp, text, confidence, metadata FROM signatures"
-            )
-        else:
-            cur.execute(
-                "SELECT source_msg_id, timestamp, text, confidence, metadata "
-                "FROM signatures WHERE signatures MATCH ?",
-                (q,),
-            )
+
+        # Normalize wildcard queries
+        if q is not None and str(q).strip() == "*":
+            q = None
+
+        where_clauses: list[str] = []
+        params: dict[str, object] = {}
+        if q:
+            where_clauses.append("text MATCH :q")
+            params["q"] = q
+
+        where_sql = ""
+        if where_clauses:
+            where_sql = "WHERE " + " AND ".join(where_clauses)
+
+        sql = (
+            "SELECT source_msg_id, timestamp, text, confidence, metadata "
+            f"FROM signatures {where_sql}"
+        )
+
+        cur.execute(sql, params)
         rows = cur.fetchall()
         result = []
         for row in rows:

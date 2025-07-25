@@ -34,8 +34,9 @@
 ### Indexing
 - **Features**
   - Abstract search index interface (**Complete**)
-  - SQLite FTS backend (**Complete**)
-  - None/"*" query returns all rows (**Complete**)
+- SQLite FTS backend (**Complete**)
+- None/"*" query returns all rows (**Complete**)
+- Dynamic WHERE clause for optional filters (**Complete**)
 - **Files**
   - `signature_recovery/index/search_index.py` — index classes
   - `signature_recovery/index/indexer.py` — PST-to-index glue code

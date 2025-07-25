@@ -23,9 +23,10 @@ def search() -> object:
     q = None if (q_raw == "" or q_raw == "*") else q_raw
     page = int(request.args.get("page", 1))
     size = int(request.args.get("size", 10))
+    min_conf = float(request.args.get("min_confidence", 0.0))
     if not index:
         return jsonify(results=[], total=0)
-    results = index.query(q)
+    results = index.query(q, min_confidence=min_conf)
     start = (page - 1) * size
     end = start + size
     subset = results[start:end]

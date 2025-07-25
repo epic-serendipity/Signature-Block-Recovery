@@ -21,7 +21,7 @@ class SearchIndex:
         for sig in signatures:
             self.add(sig)
 
-    def query(self, q: str | None = None) -> List[Signature]:
+    def query(self, q: str | None = None, *, min_confidence: float = 0.0) -> List[Signature]:
         raise NotImplementedError
 
 
@@ -77,7 +77,7 @@ class SQLiteFTSIndex(SearchIndex):
         )
         self.conn.commit()
 
-    def query(self, q: str | None = None) -> List[Signature]:
+    def query(self, q: str | None = None, *, min_confidence: float = 0.0) -> List[Signature]:
         """Return all matching signatures.
 
         ``q`` may be ``None`` to retrieve every row. ``"*"`` or blank strings are
@@ -96,6 +96,9 @@ class SQLiteFTSIndex(SearchIndex):
         if q:
             where_clauses.append("text MATCH :q")
             params["q"] = q
+        if min_confidence > 0:
+            where_clauses.append("confidence >= :minc")
+            params["minc"] = min_confidence
 
         where_sql = ""
         if where_clauses:

@@ -19,12 +19,12 @@
   - Structured signature parser (**Complete**)
   - Metadata parsing (**Complete**)
   - Configuration & Tuning (**Complete**)
-  - Confidence Scoring (**Planned**)
+  - Confidence Scoring (**In Progress**)
   - Metrics & Observability (**Planned**)
 - **Files**
-  - `signature_recovery/core/models.py` — dataclass for signature records and messages (**Complete**)
+  - `signature_recovery/core/models.py` — dataclass for signature records and messages; add `Signature.confidence` (**Complete**)
   - `signature_recovery/core/pst_parser.py` — streaming PST parser (**Complete**)
-  - `signature_recovery/core/extractor.py` — extraction logic with heuristics and HTML normalization (**Complete**)
+  - `signature_recovery/core/extractor.py` — extraction logic with heuristics and HTML normalization; compute and assign confidence (**Complete**)
   - `signature_recovery/core/deduplicator.py` — fuzzy dedupe implementation (**Complete**)
   - `signature_recovery/core/parser.py` — parse names, emails, phones (**Complete**)
   - `signature_recovery/core/config.py` — load YAML configuration (**Complete**)
@@ -93,7 +93,7 @@
   - Pipeline smoke test (**Complete**)
   - Exporter and API tests (**Complete**)
   - CLI integration tests (**Complete**)
-  - Confidence scoring tests (**Planned**)
+  - Confidence scoring tests (**Complete**)
   - Metrics aggregation tests (**Planned**)
 - **Files**
   - `tests/test_extractor.py` — extraction tests
@@ -107,7 +107,7 @@
   - `tests/test_api.py` — REST API tests (**Complete**)
   - `tests/benchmarks/test_large_pst.py` — large PST benchmark (**In Progress**)
   - `tests/benchmarks/test_index_size.py` — index size benchmark (**In Progress**)
-  - `tests/test_confidence.py` — confidence scoring logic tests (**Planned**)
+  - `tests/test_confidence.py` — confidence scoring logic tests (**Complete**)
   - `tests/test_metrics.py` — metrics aggregation tests (**Planned**)
 
 ### CI Configuration

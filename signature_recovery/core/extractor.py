@@ -172,7 +172,16 @@ class SignatureExtractor:
         text = "\n".join(collected).strip()
         parser = SignatureParser(self.config)
         meta = parser.parse(text)
-        confidence = min(1.0, base_conf + parser.last_score)
+        conf = base_conf
+        if not (meta.email or meta.phone or meta.name):
+            conf = min(conf, 0.5)
+        if meta.email:
+            conf += 0.05
+        if meta.phone:
+            conf += 0.05
+        if meta.name:
+            conf += 0.05
+        confidence = min(conf, 1.0)
         return Signature(
             text=text,
             source_msg_id=message_id,

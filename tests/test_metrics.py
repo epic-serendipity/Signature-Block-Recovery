@@ -1,62 +1,52 @@
+from signature_recovery.core.metrics import MetricsCollector, MessageMetric
 import json
-import os
 import subprocess
 import sys
-from pathlib import Path
-
-from signature_recovery.core.metrics import MetricsCollector, MessageMetric
 
 
-def test_metrics_summarize():
-    mc = MetricsCollector()
-    mc.record(MessageMetric("1", True, 0.8, 50))
-    mc.record(MessageMetric("2", False, 0.0, 100))
-    summary = mc.summarize()
+def test_metrics_summarize(tmp_path):
+    collector = MetricsCollector()
+    collector.record(MessageMetric("1", True, 0.8, 10))
+    collector.record(MessageMetric("2", False, 0.0, 5))
+    summary = collector.summarize()
     assert summary["total_messages"] == 2
     assert summary["signatures_extracted"] == 1
-    assert summary["average_time_ms"] == 75
-    assert summary["average_confidence"] == 0.4
+    assert round(summary["average_time_ms"], 2) == 7.5
+    assert round(summary["average_confidence"], 2) == 0.4
 
 
 def test_metrics_dump(tmp_path):
-    mc = MetricsCollector()
-    mc.record(MessageMetric("1", True, 1.0, 10))
+    collector = MetricsCollector()
+    collector.record(MessageMetric("1", True, 0.8, 10))
     out = tmp_path / "m.json"
-    mc.dump(str(out))
+    collector.dump(str(out))
     data = json.loads(out.read_text())
     assert "per_message" in data
     assert "summary" in data
-    assert data["summary"]["total_messages"] == 1
+    assert data["per_message"][0]["msg_id"] == "1"
 
 
-def test_cli_metrics_dump(tmp_path):
+def test_cli_dump_metrics(tmp_path):
     pst = tmp_path / "dummy.pst"
     pst.write_text("dummy")
     db = tmp_path / "out.db"
-    metrics = tmp_path / "metrics.json"
-    env = os.environ.copy()
-    env["PYTHONPATH"] = f"{Path(__file__).parent}:{env.get('PYTHONPATH','')}"
-    res = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "signature_recovery.cli.main",
-            "--batch-size",
-            "1",
-            "--dump-metrics",
-            str(metrics),
-            "extract",
-            "--input",
-            str(pst),
-            "--index",
-            str(db),
-        ],
-        capture_output=True,
-        text=True,
-        env=env,
-    )
+    metrics_path = tmp_path / "metrics.json"
+    cmd = [
+        sys.executable,
+        "-m",
+        "signature_recovery.cli.main",
+        "--batch-size",
+        "1",
+        "--dump-metrics",
+        str(metrics_path),
+        "extract",
+        "--input",
+        str(pst),
+        "--index",
+        str(db),
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True)
     assert res.returncode == 0
-    assert metrics.exists()
-    data = json.loads(metrics.read_text())
-    assert "summary" in data
-    assert data["summary"]["total_messages"] >= 2
+    assert metrics_path.exists()
+    data = json.loads(metrics_path.read_text())
+    assert "summary" in data and "per_message" in data

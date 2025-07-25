@@ -107,17 +107,15 @@ def handle_extract(args: argparse.Namespace) -> int:
         except Exception as e:  # pragma: no cover - unexpected parse errors
             log_message(logging.ERROR, f"Failed to process message {msg.msg_id}")
             logging.exception("worker error")
-            metrics.record(
-                MessageMetric(msg_id=msg.msg_id, extracted=False, confidence=0.0, time_ms=0.0)
-            )
+            metrics.record(MessageMetric(msg.msg_id, False, 0.0, 0.0))
             return None
         duration_ms = (time.time() - start_ts) * 1000
         metrics.record(
             MessageMetric(
-                msg_id=msg.msg_id,
-                extracted=sig is not None,
-                confidence=sig.confidence if sig else 0.0,
-                time_ms=duration_ms,
+                msg.msg_id,
+                sig is not None,
+                sig.confidence if sig else 0.0,
+                elapsed_ms,
             )
         )
         return sig
@@ -150,6 +148,7 @@ def handle_extract(args: argparse.Namespace) -> int:
         )
     if args.dump_metrics:
         metrics.dump(args.dump_metrics)
+        log_message(logging.INFO, f"Metrics written to {args.dump_metrics}")
     return 0
 
 

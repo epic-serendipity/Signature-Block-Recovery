@@ -50,4 +50,3 @@ def test_cli_dump_metrics(tmp_path):
     assert metrics_path.exists()
     data = json.loads(metrics_path.read_text())
     assert "summary" in data and "per_message" in data
-

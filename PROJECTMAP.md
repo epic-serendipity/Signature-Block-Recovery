@@ -94,7 +94,7 @@
   - Exporter and API tests (**Complete**)
   - CLI integration tests (**Complete**)
   - Confidence scoring tests (**Complete**)
-  - Metrics aggregation tests (**Planned**)
+  - Metrics aggregation tests (**Complete**)
 - **Files**
   - `tests/test_extractor.py` — extraction tests
   - `tests/test_deduplicator.py` — deduplication tests (**Complete**)
@@ -108,7 +108,7 @@
   - `tests/benchmarks/test_large_pst.py` — large PST benchmark (**In Progress**)
   - `tests/benchmarks/test_index_size.py` — index size benchmark (**In Progress**)
   - `tests/test_confidence.py` — confidence scoring logic tests (**Complete**)
-  - `tests/test_metrics.py` — metrics aggregation tests (**Planned**)
+  - `tests/test_metrics.py` — metrics aggregation tests (**Complete**)
 
 ### CI Configuration
 - **Features**

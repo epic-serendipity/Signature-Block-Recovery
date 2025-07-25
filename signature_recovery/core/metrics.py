@@ -6,7 +6,6 @@ from dataclasses import dataclass, asdict
 from typing import List
 import time
 import threading
-
 from template import log_message
 
 # Logging
@@ -65,7 +64,7 @@ class MetricsCollector:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-
+# main
 if __name__ == "__main__":  # pragma: no cover - manual run
     collector = MetricsCollector()
     collector.record(MessageMetric("1", True, 0.9, 10))

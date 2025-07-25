@@ -101,7 +101,7 @@ def handle_extract(args: argparse.Namespace) -> int:
     batch: List[Signature] = []
 
     def worker(msg: Message) -> Signature | None:
-        begin = time.time()
+        start_ts = time.time()
         try:
             sig = extractor.extract_signature(msg.body, msg.msg_id, msg.timestamp)
         except Exception as e:  # pragma: no cover - unexpected parse errors
@@ -109,7 +109,7 @@ def handle_extract(args: argparse.Namespace) -> int:
             logging.exception("worker error")
             metrics.record(MessageMetric(msg.msg_id, False, 0.0, 0.0))
             return None
-        elapsed_ms = (time.time() - begin) * 1000
+        duration_ms = (time.time() - start_ts) * 1000
         metrics.record(
             MessageMetric(
                 msg.msg_id,

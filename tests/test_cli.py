@@ -83,8 +83,8 @@ def test_extract_query_export_flow(tmp_path):
     assert res.returncode == 0
     assert db.exists()
     data = json.loads(metrics.read_text())
-    assert data["messages"] == 2
-    assert data["signatures_found"] >= 2
+    assert data["summary"]["total_messages"] == 2
+    assert data["summary"]["signatures_extracted"] >= 2
     assert "Processed" in res.stdout
 
     res = _run([

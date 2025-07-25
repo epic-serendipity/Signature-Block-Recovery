@@ -248,11 +248,13 @@ class App(tk.Tk):
         self.poll_id = self.after(100, self._poll_queue)
 
     def _display_results(self, results) -> None:
-        self.results = self._sort_results(results)
+        """Store and display search results, updating filter options."""
+        self.results = results
         companies = sorted({s.metadata.company or "" for s in self.results})
         titles = sorted({s.metadata.title or "" for s in self.results})
         self.filter_panel.set_companies(companies)
         self.filter_panel.set_titles(titles)
+        self.results = self._sort_results(self.results)
         self.current_page = 1
         self.show_page()
 

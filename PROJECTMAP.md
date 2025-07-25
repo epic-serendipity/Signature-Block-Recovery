@@ -61,6 +61,7 @@
   - Filters & facets (date range, company, title) (**Complete**)
   - Sort options on columns (**Complete**)
   - "*" or blank search shows all results (**Complete**)
+  - Filter panel seeded on startup (**Complete**)
 - **Files**
   - `signature_recovery/gui/app.py` — full-featured Tkinter application with modular panels; filter listboxes exposed as `company` and `title` (**Complete**)
   - `tests/test_gui.py` — GUI integration tests with event-loop sync (**Complete**)

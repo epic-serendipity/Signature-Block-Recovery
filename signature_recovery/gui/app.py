@@ -203,6 +203,9 @@ class App(tk.Tk):
 
         self.detail_panel = DetailPanel(self)
         self.detail_panel.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
+
+        # Seed filter lists using all signatures in the index
+        self._seed_filters()
         self.active = True
         self.poll_id = self.after(100, self._poll_queue)
 
@@ -234,6 +237,20 @@ class App(tk.Tk):
         results = self._apply_filters(results, filters)
         self.queue.put(results)
         log_message("info", f"Search completed: {len(results)} hits")
+
+    def _seed_filters(self) -> None:
+        """Populate filter panel using all signatures from the index."""
+        if not self.index:
+            return
+        try:
+            all_sigs = self.index.query(None)
+        except Exception as exc:  # pragma: no cover - initialization guard
+            log_message("error", f"Failed to seed filters: {exc}")
+            return
+        companies = sorted({s.metadata.company or "" for s in all_sigs})
+        titles = sorted({s.metadata.title or "" for s in all_sigs})
+        self.filter_panel.set_companies(companies)
+        self.filter_panel.set_titles(titles)
 
     def _poll_queue(self) -> None:
         if not self.active:

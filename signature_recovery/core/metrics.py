@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Metrics collection utilities."""
+"""Runtime metrics collection utilities."""
 
 # Imports
 import json
-from dataclasses import dataclass
+import threading
+import time
+from dataclasses import dataclass, asdict
+from typing import List
+
 from template import log_message
 
 # Logging
@@ -13,56 +17,58 @@ from template import log_message
 # Classes/Functions
 
 @dataclass
-class Metrics:
-    """Accumulates processing metrics."""
+class MessageMetric:
+    """Per-message metric record."""
 
-    total_messages: int = 0
-    signatures_found: int = 0
-    total_time_ms: float = 0.0
-    total_confidence: float = 0.0
+    msg_id: str
+    extracted: bool
+    confidence: float
+    time_ms: float
 
-    def record(
-        self, msg_id: str, extracted: bool, confidence: float, num_lines: int, time_ms: float
-    ) -> None:
-        """Log message metrics and update counters."""
-        log_message(
-            "info",
-            json.dumps(
-                {
-                    "msg_id": msg_id,
-                    "extracted": extracted,
-                    "confidence": round(confidence, 2),
-                    "num_lines": num_lines,
-                    "time_ms": round(time_ms, 2),
-                }
-            ),
-        )
-        self.total_messages += 1
-        self.total_time_ms += time_ms
-        if extracted:
-            self.signatures_found += 1
-            self.total_confidence += confidence
 
-    def summary(self) -> dict:
-        """Return aggregated metrics."""
-        avg_time = self.total_time_ms / self.total_messages if self.total_messages else 0.0
-        avg_conf = (
-            self.total_confidence / self.signatures_found if self.signatures_found else 0.0
-        )
+class MetricsCollector:
+    """Thread-safe collector for per-message metrics and aggregates."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._metrics: List[MessageMetric] = []
+        self.start_time = time.time()
+
+    def record(self, metric: MessageMetric) -> None:
+        """Store ``metric`` in the internal list."""
+        with self._lock:
+            self._metrics.append(metric)
+
+    def summarize(self) -> dict:
+        """Return aggregated metrics across all messages."""
+        with self._lock:
+            total = len(self._metrics)
+            extracted = sum(1 for m in self._metrics if m.extracted)
+            avg_time = sum(m.time_ms for m in self._metrics) / total if total else 0
+            avg_conf = sum(m.confidence for m in self._metrics) / total if total else 0
         return {
-            "messages": self.total_messages,
-            "signatures_found": self.signatures_found,
-            "avg_time_ms": round(avg_time, 2),
-            "avg_confidence": round(avg_conf, 2),
+            "total_messages": total,
+            "signatures_extracted": extracted,
+            "average_time_ms": avg_time,
+            "average_confidence": avg_conf,
+            "duration_s": time.time() - self.start_time,
         }
 
+    def dump(self, path: str) -> None:
+        """Write collected metrics and summary to ``path`` as JSON."""
+        data = {
+            "per_message": [asdict(m) for m in self._metrics],
+            "summary": self.summarize(),
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+            log_message("info", f"Metrics written to {path}")
 
-def main() -> None:  # pragma: no cover - manual test
-    m = Metrics()
-    m.record("1", True, 0.8, 5, 1.2)
-    m.record("2", False, 0.0, 3, 0.5)
-    print(json.dumps(m.summary(), indent=2))
 
+# main
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__":  # pragma: no cover - manual test
+    m = MetricsCollector()
+    m.record(MessageMetric("1", True, 0.9, 10))
+    time.sleep(0.01)
+    m.dump("metrics.json")

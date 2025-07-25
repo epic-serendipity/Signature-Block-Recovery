@@ -161,7 +161,9 @@ def handle_query(args: argparse.Namespace) -> int:
         log_message(logging.ERROR, f"Index not found: {args.index}")
         return 1
     indexer = SQLiteFTSIndex(args.index)
-    results = indexer.query(args.q)
+    q_raw = args.q.strip()
+    q = None if (q_raw == "*" or q_raw == "") else q_raw
+    results = indexer.query(q)
     results = [s for s in results if s.confidence >= args.min_confidence]
     start = (args.page - 1) * args.size
     for sig in results[start : start + args.size]:
@@ -184,7 +186,8 @@ def handle_export(args: argparse.Namespace) -> int:
         log_message(logging.ERROR, f"Index not found: {args.index}")
         return 1
     indexer = SQLiteFTSIndex(args.index)
-    q = args.q or "*"
+    q_raw = (args.q or "").strip()
+    q = None if (q_raw == "*" or q_raw == "") else q_raw
     results = [s for s in indexer.query(q) if s.confidence >= args.min_confidence]
     if args.date_from:
         results = [s for s in results if float(s.timestamp or 0) >= args.date_from]

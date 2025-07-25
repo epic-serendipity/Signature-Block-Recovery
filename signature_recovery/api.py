@@ -19,7 +19,8 @@ index: SQLiteFTSIndex | None = None
 # Classes/Functions
 @app.route("/search")
 def search() -> object:
-    q = request.args.get("q", "*")
+    q_raw = request.args.get("q", "").strip()
+    q = None if (q_raw == "" or q_raw == "*") else q_raw
     page = int(request.args.get("page", 1))
     size = int(request.args.get("size", 10))
     if not index:

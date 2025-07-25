@@ -17,7 +17,7 @@ class DummyIndex(SearchIndex):
     def add(self, signature: Signature) -> None:  # pragma: no cover - not used
         pass
 
-    def query(self, q: str, **kwargs):
+    def query(self, q: str | None, **kwargs):
         return self._results
 
 

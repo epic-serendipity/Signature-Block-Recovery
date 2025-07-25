@@ -20,7 +20,7 @@
   - Metadata parsing (**Complete**)
   - Configuration & Tuning (**Complete**)
   - Confidence Scoring (**In Progress**)
-  - Metrics & Observability (**Planned**)
+  - Metrics & Observability (**In Progress**)
 - **Files**
   - `signature_recovery/core/models.py` — dataclass for signature records and messages; add `Signature.confidence` (**Complete**)
   - `signature_recovery/core/pst_parser.py` — streaming PST parser (**Complete**)
@@ -28,7 +28,7 @@
   - `signature_recovery/core/deduplicator.py` — fuzzy dedupe implementation (**Complete**)
   - `signature_recovery/core/parser.py` — parse names, emails, phones (**Complete**)
   - `signature_recovery/core/config.py` — load YAML configuration (**Complete**)
-  - `signature_recovery/core/metrics.py` — runtime metrics aggregation (**Planned**)
+  - `signature_recovery/core/metrics.py` — runtime metrics aggregation (**In Progress**)
   - `config.example.yaml` — sample configuration (**Complete**)
 
 ### Indexing

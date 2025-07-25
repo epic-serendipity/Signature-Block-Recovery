@@ -16,7 +16,7 @@ from .. import __version__
 
 from ..core.extractor import SignatureExtractor
 from ..core.deduplicator import dedupe_signatures
-from ..core.metrics import Metrics
+from ..core.metrics import MetricsCollector, MessageMetric
 from ..core.models import Message, Signature
 from ..core.pst_parser import PSTParser
 from ..exporter import export_to_csv, export_to_json, export_to_excel
@@ -96,7 +96,7 @@ def handle_extract(args: argparse.Namespace) -> int:
 
     extractor = SignatureExtractor()
     indexer = SQLiteFTSIndex(args.index)
-    metrics = Metrics()
+    metrics = MetricsCollector()
     start = time.time()
     batch: List[Signature] = []
 
@@ -107,15 +107,16 @@ def handle_extract(args: argparse.Namespace) -> int:
         except Exception as e:  # pragma: no cover - unexpected parse errors
             log_message(logging.ERROR, f"Failed to process message {msg.msg_id}")
             logging.exception("worker error")
-            metrics.record(msg.msg_id, False, 0.0, len(msg.body.splitlines()), 0.0)
+            metrics.record(MessageMetric(msg.msg_id, False, 0.0, 0.0))
             return None
         elapsed_ms = (time.time() - begin) * 1000
         metrics.record(
-            msg.msg_id,
-            sig is not None,
-            sig.confidence if sig else 0.0,
-            len(msg.body.splitlines()),
-            elapsed_ms,
+            MessageMetric(
+                msg.msg_id,
+                sig is not None,
+                sig.confidence if sig else 0.0,
+                elapsed_ms,
+            )
         )
         return sig
 
@@ -135,17 +136,19 @@ def handle_extract(args: argparse.Namespace) -> int:
         log_message(logging.INFO, f"Committed {len(uniques)} signatures")
 
     elapsed = time.time() - start
-    summary = metrics.summary()
+    summary = metrics.summarize()
     if args.metrics:
-        msg_rate = summary["messages"] / elapsed if elapsed else 0
-        sig_rate = summary["signatures_found"] / elapsed if elapsed else 0
+        msg_rate = summary["total_messages"] / elapsed if elapsed else 0
+        sig_rate = summary["signatures_extracted"] / elapsed if elapsed else 0
         print(
-            f"Processed {summary['messages']} messages in {elapsed:.2f} seconds ({msg_rate:.0f} msg/sec)")
+            f"Processed {summary['total_messages']} messages in {elapsed:.2f} seconds ({msg_rate:.0f} msg/sec)"
+        )
         print(
-            f"Extracted {summary['signatures_found']} signatures ({sig_rate:.0f} sig/sec), avg conf {summary['avg_confidence']:.2f}")
+            f"Extracted {summary['signatures_extracted']} signatures ({sig_rate:.0f} sig/sec), avg conf {summary['average_confidence']:.2f}"
+        )
     if args.dump_metrics:
-        with open(args.dump_metrics, "w", encoding="utf-8") as fh:
-            json.dump(summary, fh, indent=2)
+        metrics.dump(args.dump_metrics)
+        log_message(logging.INFO, f"Metrics written to {args.dump_metrics}")
     return 0
 
 

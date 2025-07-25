@@ -59,36 +59,36 @@ class FilterPanel(tk.LabelFrame):
         top.pack(fill=tk.X, pady=2)
         lists = tk.Frame(self)
         tk.Label(lists, text="Company").pack(side=tk.LEFT)
-        self.company_listbox = tk.Listbox(
+        self.company = tk.Listbox(
             lists, selectmode=tk.MULTIPLE, height=4, exportselection=False
         )
-        self.company_listbox.pack(side=tk.LEFT, padx=5)
+        self.company.pack(side=tk.LEFT, padx=5)
         tk.Label(lists, text="Title").pack(side=tk.LEFT)
-        self.title_listbox = tk.Listbox(
+        self.title = tk.Listbox(
             lists, selectmode=tk.MULTIPLE, height=4, exportselection=False
         )
-        self.title_listbox.pack(side=tk.LEFT, padx=5)
+        self.title.pack(side=tk.LEFT, padx=5)
         lists.pack(fill=tk.X, pady=2)
 
     def set_companies(self, companies) -> None:
         """Populate company filter options."""
-        self.company_listbox.delete(0, tk.END)
+        self.company.delete(0, tk.END)
         for c in companies:
-            self.company_listbox.insert(tk.END, c)
+            self.company.insert(tk.END, c)
 
     def set_titles(self, titles) -> None:
         """Populate title filter options."""
-        self.title_listbox.delete(0, tk.END)
+        self.title.delete(0, tk.END)
         for t in titles:
-            self.title_listbox.insert(tk.END, t)
+            self.title.insert(tk.END, t)
 
     def set_options(self, companies, titles) -> None:
         self.set_companies(sorted(companies))
         self.set_titles(sorted(titles))
 
     def get_filters(self) -> dict:
-        comps = [self.company_listbox.get(i) for i in self.company_listbox.curselection()]
-        titles = [self.title_listbox.get(i) for i in self.title_listbox.curselection()]
+        comps = [self.company.get(i) for i in self.company.curselection()]
+        titles = [self.title.get(i) for i in self.title.curselection()]
         return {
             "start": self.start_var.get().strip(),
             "end": self.end_var.get().strip(),

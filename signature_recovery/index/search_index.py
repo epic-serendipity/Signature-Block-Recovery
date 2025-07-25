@@ -21,7 +21,7 @@ class SearchIndex:
         for sig in signatures:
             self.add(sig)
 
-    def query(self, q: str) -> List[Signature]:
+    def query(self, q: str | None = None) -> List[Signature]:
         raise NotImplementedError
 
 
@@ -77,10 +77,10 @@ class SQLiteFTSIndex(SearchIndex):
         )
         self.conn.commit()
 
-    def query(self, q: str) -> List[Signature]:
+    def query(self, q: str | None = None) -> List[Signature]:
         log_message(logging.DEBUG, "Querying index")
         cur = self.conn.cursor()
-        if q == "*" or not q.strip():
+        if q is None or q == "*" or not str(q).strip():
             cur.execute(
                 "SELECT source_msg_id, timestamp, text, confidence, metadata FROM signatures"
             )

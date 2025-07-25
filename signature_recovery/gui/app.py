@@ -220,14 +220,15 @@ class App(tk.Tk):
     def on_search(self) -> None:
         if not self.index:
             return
-        query = self.search_panel.get_query() or "*"
+        raw_query = self.search_panel.query_var.get().strip()
+        query = None if (raw_query == "*" or raw_query == "") else raw_query
         filters = self.filter_panel.get_filters()
         self.search_panel.disable()
         self.pagination_panel.disable()
         thread = threading.Thread(target=self._search_thread, args=(query, filters), daemon=True)
         thread.start()
 
-    def _search_thread(self, query: str, filters: dict) -> None:
+    def _search_thread(self, query: str | None, filters: dict) -> None:
         log_message("info", f"Search started: {query}")
         results = self.index.query(query) if self.index else []
         results = self._apply_filters(results, filters)

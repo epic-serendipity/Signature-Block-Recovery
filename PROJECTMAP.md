@@ -35,6 +35,7 @@
 - **Features**
   - Abstract search index interface (**Complete**)
   - SQLite FTS backend (**Complete**)
+  - None/"*" query returns all rows (**Complete**)
 - **Files**
   - `signature_recovery/index/search_index.py` — index classes
   - `signature_recovery/index/indexer.py` — PST-to-index glue code
@@ -58,6 +59,7 @@
   - Pagination controls and page size selector (**Complete**)
   - Filters & facets (date range, company, title) (**Complete**)
   - Sort options on columns (**Complete**)
+  - "*" or blank search shows all results (**Complete**)
 - **Files**
   - `signature_recovery/gui/app.py` — full-featured Tkinter application with modular panels; filter listboxes exposed as `company` and `title` (**Complete**)
   - `tests/test_gui.py` — GUI integration tests with event-loop sync (**Complete**)

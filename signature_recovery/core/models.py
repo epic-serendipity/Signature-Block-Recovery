@@ -33,7 +33,7 @@ class Signature:
     metadata:
         Parsed ``SignatureMetadata``.
     confidence:
-        Confidence score between 0.0 and 1.0.
+        Confidence score in the range ``0.0``–``1.0``.
     """
 
     text: str

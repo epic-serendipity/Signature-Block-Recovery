@@ -49,6 +49,8 @@ def dedupe_signatures(
                         val = getattr(sig.metadata, f.name)
                         if val is not None:
                             setattr(u.metadata, f.name, val)
+                if sig.confidence > u.confidence:
+                    u.confidence = sig.confidence
                 log_message(
                     logging.INFO,
                     f"Merged signature {sig.source_msg_id} into {u.source_msg_id} (ratio={ratio:.2f})",

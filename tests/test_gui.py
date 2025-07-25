@@ -133,3 +133,24 @@ def test_sort_toggle(tmp_path, display):
     names = [r.metadata.name for r in app.results]
     assert names == sorted(names, reverse=True)
     app.close()
+
+
+def test_confidence_slider(tmp_path, display):
+    idx = _build_index(tmp_path, count=2)
+    app = App(idx)
+    app.search_panel.query_var.set("*")
+    app.filter_panel.conf_var.set(0.0)
+    app.on_search()
+    for _ in range(20):
+        app.update()
+        time.sleep(0.05)
+        if app.results:
+            break
+    assert len(app.results) == 2
+    app.filter_panel.conf_var.set(0.75)
+    app.on_search()
+    for _ in range(20):
+        app.update()
+        time.sleep(0.05)
+    assert len(app.results) == 1
+    app.close()

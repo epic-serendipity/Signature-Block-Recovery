@@ -163,12 +163,14 @@ def handle_query(args: argparse.Namespace) -> int:
     indexer = SQLiteFTSIndex(args.index)
     q_raw = args.q.strip()
     q = None if (q_raw == "*" or q_raw == "") else q_raw
-    results = indexer.query(q)
-    results = [s for s in results if s.confidence >= args.min_confidence]
+    results = indexer.query(q, min_confidence=args.min_confidence)
     start = (args.page - 1) * args.size
     for sig in results[start : start + args.size]:
         if args.verbose:
-            print(f"{sig.source_msg_id}\t{sig.timestamp}\t{sig.text}", flush=True)
+            print(
+                f"{sig.source_msg_id}\t{sig.timestamp}\t{sig.confidence:.2f}\t{sig.text}",
+                flush=True,
+            )
         else:
             print(sig.text, flush=True)
     return 0
@@ -188,7 +190,7 @@ def handle_export(args: argparse.Namespace) -> int:
     indexer = SQLiteFTSIndex(args.index)
     q_raw = (args.q or "").strip()
     q = None if (q_raw == "*" or q_raw == "") else q_raw
-    results = [s for s in indexer.query(q) if s.confidence >= args.min_confidence]
+    results = indexer.query(q, min_confidence=args.min_confidence)
     if args.date_from:
         results = [s for s in results if float(s.timestamp or 0) >= args.date_from]
     if args.date_to:

@@ -38,6 +38,23 @@ def test_subcommand_help():
         assert "--help" not in res.stderr
 
 
+def test_query_verbose_confidence(tmp_path):
+    db = _build_index(tmp_path)
+    res = _run([
+        sys.executable,
+        "-m",
+        "signature_recovery.cli.main",
+        "query",
+        "--index",
+        str(db),
+        "--q",
+        "John",
+        "--verbose",
+    ])
+    assert "John Doe" in res.stdout
+    assert "0.90" in res.stdout or "0.9" in res.stdout
+
+
 def test_extract_query_export_flow(tmp_path):
     pst = tmp_path / "dummy.pst"
     pst.write_text("dummy")

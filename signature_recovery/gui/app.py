@@ -70,6 +70,20 @@ class FilterPanel(tk.LabelFrame):
         self.title.pack(side=tk.LEFT, padx=5)
         lists.pack(fill=tk.X, pady=2)
 
+        conf = tk.Frame(self)
+        tk.Label(conf, text="Min Confidence:").pack(side=tk.LEFT)
+        self.conf_var = tk.DoubleVar(value=0.0)
+        tk.Scale(
+            conf,
+            variable=self.conf_var,
+            from_=0.0,
+            to=1.0,
+            resolution=0.05,
+            orient=tk.HORIZONTAL,
+            length=120,
+        ).pack(side=tk.LEFT, padx=5)
+        conf.pack(fill=tk.X, pady=2)
+
     def set_companies(self, companies) -> None:
         """Populate company filter options."""
         self.company.delete(0, tk.END)
@@ -94,6 +108,7 @@ class FilterPanel(tk.LabelFrame):
             "end": self.end_var.get().strip(),
             "companies": comps,
             "titles": titles,
+            "min_confidence": float(self.conf_var.get()),
         }
 
 
@@ -233,7 +248,8 @@ class App(tk.Tk):
 
     def _search_thread(self, query: str | None, filters: dict) -> None:
         log_message("info", f"Search started: {query}")
-        results = self.index.query(query) if self.index else []
+        min_conf = float(filters.get("min_confidence", 0.0))
+        results = self.index.query(query, min_confidence=min_conf) if self.index else []
         results = self._apply_filters(results, filters)
         self.queue.put(results)
         log_message("info", f"Search completed: {len(results)} hits")

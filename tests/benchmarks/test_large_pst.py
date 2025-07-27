@@ -5,11 +5,7 @@ from pathlib import Path
 
 import pytest
 
-
-@pytest.fixture(autouse=True)
-def _skip(request):
-    if not request.config.getoption("--benchmark"):
-        pytest.skip("benchmark tests skipped")
+pytestmark = pytest.mark.benchmark
 
 
 def test_large_pst(tmp_path):

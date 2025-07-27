@@ -7,10 +7,7 @@ from signature_recovery.index.search_index import SQLiteFTSIndex
 from signature_recovery.core.models import Signature
 
 
-@pytest.fixture(autouse=True)
-def _skip(request):
-    if not request.config.getoption("--benchmark"):
-        pytest.skip("benchmark tests skipped")
+pytestmark = pytest.mark.benchmark
 
 
 def test_index_size(tmp_path):

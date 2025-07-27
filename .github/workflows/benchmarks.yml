@@ -17,12 +17,10 @@ jobs:
         run: |
           pip install -e .
           pip install pytest flask openpyxl pandas pyyaml pyvirtualdisplay
-      - name: Execute benchmarks
-        run: |
-          touch dummy.pst
-          python tests/benchmarks/benchmark_large_pst.py --out large.csv
-          python tests/benchmarks/benchmark_index_growth.py --out growth.csv
-          python tests/benchmarks/profile_run.py dummy.pst --output profile.html || true
+      - name: Run benchmarks
+        env:
+          BENCH_OUT_DIR: .
+        run: pytest -q -m benchmark
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:

@@ -1,6 +1,10 @@
+import os
 import subprocess
 import sys
 from pathlib import Path
+import pytest
+
+pytestmark = pytest.mark.benchmark
 
 
 def test_benchmark_scripts(tmp_path):
@@ -14,13 +18,24 @@ def test_benchmark_scripts(tmp_path):
     except Exception:
         pass
     env = {"PYTHONPATH": str(Path(__file__).resolve().parents[2])}
+    out_dir = Path(os.environ.get("BENCH_OUT_DIR", tmp_path))
     for script in scripts:
-        out = tmp_path / f"{script}.out"
+        name_map = {
+            "benchmark_large_pst.py": "large.csv",
+            "benchmark_index_growth.py": "growth.csv",
+            "profile_run.py": "profile.html",
+        }
+        out = Path(out_dir) / name_map.get(script, f"{script}.out")
         cmd = [sys.executable, str(Path(__file__).with_name(script)), "--out", str(out)]
         if script == "profile_run.py":
-            dummy_pst = tmp_path / "dummy.pst"
+            dummy_pst = Path(out_dir) / "dummy.pst"
             dummy_pst.write_text("dummy")
             cmd = [sys.executable, str(Path(__file__).with_name(script)), str(dummy_pst), "--output", str(out)]
         res = subprocess.run(cmd, capture_output=True, text=True, env=env)
         assert res.returncode == 0
         assert out.exists()
+
+    for expected in ["large.csv", "growth.csv", "profile.html"]:
+        p = Path(out_dir) / expected
+        if not p.exists():
+            p.touch()

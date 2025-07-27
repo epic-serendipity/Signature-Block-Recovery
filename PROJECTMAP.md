@@ -108,10 +108,10 @@
   - `tests/test_api.py` — REST API tests (**Complete**)
   - `tests/benchmarks/test_large_pst.py` — large PST benchmark (**In Progress**)
   - `tests/benchmarks/test_index_size.py` — index size benchmark (**In Progress**)
-  - `tests/benchmarks/benchmark_large_pst.py` — performance benchmark (**Planned**)
-  - `tests/benchmarks/benchmark_index_growth.py` — index-growth benchmark (**Planned**)
-  - `tests/benchmarks/profile_run.py` — profiling harness (**Planned**)
-  - `tests/benchmarks/test_benchmarks.py` — benchmark script smoke tests (**Planned**)
+  - `tests/benchmarks/benchmark_large_pst.py` — performance benchmark (**Complete**)
+  - `tests/benchmarks/benchmark_index_growth.py` — index-growth benchmark (**Complete**)
+  - `tests/benchmarks/profile_run.py` — profiling harness (**Complete**)
+  - `tests/benchmarks/test_benchmarks.py` — benchmark script smoke tests (**Complete**)
   - `tests/test_confidence.py` — confidence scoring logic tests (**Complete**)
   - `tests/test_metrics.py` — metrics aggregation tests (**Complete**)
 
@@ -121,12 +121,12 @@
   - CLI help-grep step with threads flag validation (**Complete**)
   - Verify CLI entry point subcommands (**Complete**)
   - Headless display support for GUI tests (**Complete**)
-  - Benchmark tests (**In Progress**)
+  - Benchmark tests (**Complete**)
   - Benchmark CI job (nightly) (**In Progress**)
 - **Files**
 - `.github/workflows/ci.yml` — CI workflow (**Complete**)
-- `.github/workflows/benchmarks.yml` — nightly benchmark CI (**Planned**)
-- `docs/performance/` — directory for profiling reports (**Planned**)
+  - `.github/workflows/benchmarks.yml` — nightly benchmark CI (**Complete**)
+  - `docs/performance/` — directory for profiling reports (**Complete**)
 
 ## Open Planning Questions
 

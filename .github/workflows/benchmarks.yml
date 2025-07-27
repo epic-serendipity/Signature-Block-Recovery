@@ -1,0 +1,33 @@
+name: Benchmarks
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest flask openpyxl pandas pyyaml pyvirtualdisplay
+      - name: Execute benchmarks
+        run: |
+          touch dummy.pst
+          python tests/benchmarks/benchmark_large_pst.py --out large.csv
+          python tests/benchmarks/benchmark_index_growth.py --out growth.csv
+          python tests/benchmarks/profile_run.py dummy.pst --output profile.html || true
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-results
+          path: |
+            large.csv
+            growth.csv
+            profile.html

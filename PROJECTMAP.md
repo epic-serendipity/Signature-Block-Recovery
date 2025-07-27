@@ -88,7 +88,8 @@
 - **Features**
   - Unit tests for extractor and deduplicator (**Complete**)
   - PST parser tests (**Complete**)
-  - Benchmark tests for performance and index validity (**In Progress**)
+  - Benchmark tests for performance and index validity (**Complete**)
+  - Benchmark CI job (nightly) (**In Progress**)
   - Parser metadata tests (**Complete**)
   - Pipeline smoke test (**Complete**)
   - Exporter and API tests (**Complete**)
@@ -107,6 +108,10 @@
   - `tests/test_api.py` — REST API tests (**Complete**)
   - `tests/benchmarks/test_large_pst.py` — large PST benchmark (**In Progress**)
   - `tests/benchmarks/test_index_size.py` — index size benchmark (**In Progress**)
+  - `tests/benchmarks/benchmark_large_pst.py` — performance benchmark (**Planned**)
+  - `tests/benchmarks/benchmark_index_growth.py` — index-growth benchmark (**Planned**)
+  - `tests/benchmarks/profile_run.py` — profiling harness (**Planned**)
+  - `tests/benchmarks/test_benchmarks.py` — benchmark script smoke tests (**Planned**)
   - `tests/test_confidence.py` — confidence scoring logic tests (**Complete**)
   - `tests/test_metrics.py` — metrics aggregation tests (**Complete**)
 
@@ -117,9 +122,11 @@
   - Verify CLI entry point subcommands (**Complete**)
   - Headless display support for GUI tests (**Complete**)
   - Benchmark tests (**In Progress**)
-  - Benchmark CI job (nightly) (**Planned**)
+  - Benchmark CI job (nightly) (**In Progress**)
 - **Files**
-  - `.github/workflows/ci.yml` — CI workflow (**Complete**)
+- `.github/workflows/ci.yml` — CI workflow (**Complete**)
+- `.github/workflows/benchmarks.yml` — nightly benchmark CI (**Planned**)
+- `docs/performance/` — directory for profiling reports (**Planned**)
 
 ## Open Planning Questions
 

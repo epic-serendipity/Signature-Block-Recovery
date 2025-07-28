@@ -16,7 +16,7 @@ jobs:
         run: |
           pip install -e .
           pip install pytest flask openpyxl pandas pyyaml pyvirtualdisplay
-      - name: Run tests
+      - name: Run tests (excluding benchmarks)
         run: pytest -q -m "not benchmark"
       - name: CLI help flags
         run: |

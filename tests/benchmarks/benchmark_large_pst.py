@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Benchmark extraction and indexing throughput."""
 
+import pytest
+
+pytestmark = pytest.mark.benchmark
+
 # Imports
 import argparse
 import csv

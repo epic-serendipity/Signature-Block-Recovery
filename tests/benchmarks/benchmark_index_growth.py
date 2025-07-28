@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Measure SQLite index size growth."""
 
+import pytest
+
+pytestmark = pytest.mark.benchmark
+
 # Imports
 import argparse
 import csv

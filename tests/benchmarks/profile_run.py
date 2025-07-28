@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Profile a full extraction run and output HTML stats."""
 
+import pytest
+
+pytestmark = pytest.mark.benchmark
+
 # Imports
 import argparse
 import cProfile

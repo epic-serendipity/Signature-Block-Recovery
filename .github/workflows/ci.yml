@@ -16,8 +16,8 @@ jobs:
         run: |
           pip install -e .
           pip install pytest flask openpyxl pandas pyyaml pyvirtualdisplay
-      - name: Run tests (excluding benchmarks)
-        run: pytest -q -m "not benchmark"
+      - name: Run tests
+        run: pytest -q
       - name: CLI help flags
         run: |
           python -m signature_recovery.cli.main --help | grep --quiet "threads" || echo "threads flag not found"

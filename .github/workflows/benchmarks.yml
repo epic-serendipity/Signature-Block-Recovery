@@ -20,7 +20,7 @@ jobs:
       - name: Run benchmarks
         env:
           BENCH_OUT_DIR: .
-        run: pytest -q -m benchmark
+        run: pytest -q tests/benchmarks
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:

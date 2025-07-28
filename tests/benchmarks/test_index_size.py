@@ -1,13 +1,8 @@
 import sqlite3
 from pathlib import Path
 
-import pytest
-
 from signature_recovery.index.search_index import SQLiteFTSIndex
 from signature_recovery.core.models import Signature
-
-
-pytestmark = pytest.mark.benchmark
 
 
 def test_index_size(tmp_path):

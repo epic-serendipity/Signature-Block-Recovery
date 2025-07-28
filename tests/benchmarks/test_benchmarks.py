@@ -2,9 +2,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-import pytest
-
-pytestmark = pytest.mark.benchmark
 
 
 def test_benchmark_scripts(tmp_path):

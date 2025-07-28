@@ -123,6 +123,7 @@
   - Headless display support for GUI tests (**Complete**)
   - Benchmark tests (**Complete**)
   - Benchmark CI job (nightly) (**Complete**)
+  - Skip benchmarks in default test runs (**Complete**)
 - **Files**
 - `.github/workflows/ci.yml` — CI workflow (**Complete**)
   - `.github/workflows/benchmarks.yml` — nightly benchmark CI (**Complete**)

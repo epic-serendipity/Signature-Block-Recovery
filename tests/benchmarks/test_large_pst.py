@@ -5,8 +5,6 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = pytest.mark.benchmark
-
 
 def test_large_pst(tmp_path):
     pst_path = os.environ.get("LARGE_PST_PATH")

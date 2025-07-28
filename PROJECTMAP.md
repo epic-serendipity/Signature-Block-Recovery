@@ -9,6 +9,13 @@
   - `README.md` — project overview
   - `AGENTS.md` — Codex automation rules
   - `PROJECTMAP.md` — project map and planning questions
+  - `completion/recover-signatures.bash` — bash completion script (**Planned**)
+  - `completion/recover-signatures.zsh` — zsh completion script (**Planned**)
+  - `docs/installation.md` — installation instructions (**Planned**)
+  - `docs/cli_usage.md` — CLI usage guide (**Planned**)
+  - `docs/gui_usage.md` — GUI guide (**Planned**)
+  - `docs/api_reference.md` — REST endpoints (**Planned**)
+  - `docs/troubleshooting.md` — troubleshooting tips (**Planned**)
 
 ### Signature Recovery Core
 - **Features**
@@ -124,10 +131,18 @@
   - Benchmark tests (**Complete**)
   - Benchmark CI job (nightly) (**Complete**)
   - Skip benchmarks in default test runs (**Complete**)
+  - Build and upload docs and installers (**Planned**)
 - **Files**
 - `.github/workflows/ci.yml` — CI workflow (**Complete**)
   - `.github/workflows/benchmarks.yml` — nightly benchmark CI (**Complete**)
   - `docs/performance/` — directory for profiling reports (**Complete**)
+
+### Release
+- **Features**
+  - Packaging wheels and source distributions (**Planned**)
+  - Standalone executables with PyInstaller (**Planned**)
+  - GUI installers for Windows and macOS (**Planned**)
+  - Release workflow documentation (**Planned**)
 
 ## Open Planning Questions
 

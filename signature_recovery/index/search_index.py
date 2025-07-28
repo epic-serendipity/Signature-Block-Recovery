@@ -8,7 +8,7 @@ from typing import Iterable, List
 
 from ..core.models import Signature, SignatureMetadata
 from ..core.logging import retry
-from template import log_message
+logger = logging.getLogger(__name__)
 
 
 class SearchIndex:
@@ -48,7 +48,7 @@ class SQLiteFTSIndex(SearchIndex):
         self.conn.commit()
 
     def add(self, signature: Signature) -> None:
-        log_message(logging.DEBUG, "Indexing signature")
+        logger.debug("Indexing signature")
         cur = self.conn.cursor()
         cur.execute(
             "INSERT INTO signatures (source_msg_id, timestamp, text, confidence, metadata)"
@@ -64,7 +64,7 @@ class SQLiteFTSIndex(SearchIndex):
         self._commit()
 
     def add_batch(self, signatures: Iterable[Signature]) -> None:
-        log_message(logging.DEBUG, "Indexing batch of signatures")
+        logger.debug("Indexing batch of signatures")
         cur = self.conn.cursor()
         cur.executemany(
             "INSERT INTO signatures (source_msg_id, timestamp, text, confidence, metadata)"
@@ -89,7 +89,7 @@ class SQLiteFTSIndex(SearchIndex):
         also treated as ``None`` for convenience.
         """
 
-        log_message(logging.DEBUG, "Querying index")
+        logger.debug("Querying index")
         cur = self.conn.cursor()
 
         # Normalize wildcard queries

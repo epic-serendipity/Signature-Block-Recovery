@@ -12,7 +12,7 @@ import time
 from typing import Iterator, List, Optional
 
 from signature_recovery.core.models import Message
-from template import log_message  # our helper
+logger = logging.getLogger(__name__)
 from .logging import retry
 
 logger = logging.getLogger("PSTParser")
@@ -25,18 +25,18 @@ class PSTParser:
     def __init__(self, pst_path: str) -> None:
         """Initialize with path to the PST file."""
         if not os.path.isfile(pst_path):
-            log_message("error", f"PST file not found: {pst_path}")
+            logger.error("PST file not found: %s", pst_path)
             raise FileNotFoundError(f"PST file not found: {pst_path}")
 
         try:
             import pypff
         except ImportError as e:
-            log_message("critical", "pypff library is required for PST parsing")
+            logger.critical("pypff library is required for PST parsing")
             raise
 
         self._pst = pypff.file()
         self._open(pst_path)
-        log_message("info", f"Opened PST file: {pst_path}")
+        logger.info("Opened PST file: %s", pst_path)
 
     @retry(Exception, tries=3, delay=0.5)
     def _open(self, path: str) -> None:
@@ -44,7 +44,11 @@ class PSTParser:
         try:
             self._pst.open(path)
         except Exception:
-            log_message("error", f"Failed to open PST: {path}", component="pst_parser")
+            logger.error(
+                "Failed to open PST: %s",
+                path,
+                extra={"component": "pst_parser"},
+            )
             raise
 
     def iter_messages(
@@ -85,11 +89,15 @@ class PSTParser:
                     )
                     yield Message(body=body, msg_id=msg_id, timestamp=timestamp)
                 except Exception as e:
-                    log_message(
-                        "warning",
-                        f"Failed to read message #{i} in folder {folder.name}: {e}",
-                        component="pst_parser",
-                        msg_id=f"{folder.name}/{i}",
+                    logger.warning(
+                        "Failed to read message #%s in folder %s: %s",
+                        i,
+                        folder.name,
+                        e,
+                        extra={
+                            "component": "pst_parser",
+                            "msg_id": f"{folder.name}/{i}",
+                        },
                     )
                     continue
 

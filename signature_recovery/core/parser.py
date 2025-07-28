@@ -7,7 +7,9 @@ from typing import Dict, Any
 
 from .models import SignatureMetadata
 from .config import load_config
-from template import log_message
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Logging
 
@@ -38,7 +40,7 @@ class SignatureParser:
         ``None``.
         """
 
-        log_message("debug", "Parsing signature text")
+        logger.debug("Parsing signature text")
         self.last_score = 0.0
 
         parts = []

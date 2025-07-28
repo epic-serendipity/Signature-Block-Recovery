@@ -72,8 +72,26 @@ def retry(
 
     return decorator
 
+
+def log_exceptions(level: int = logging.ERROR, reraise: bool = True) -> Callable[[Callable], Callable]:
+    """Decorator to log exceptions from ``func`` at ``level``."""
+
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as exc:
+                logging.getLogger(func.__module__).log(level, str(exc), exc_info=True)
+                if reraise:
+                    raise
+        return wrapper
+
+    return decorator
+
 # main
 if __name__ == "__main__":  # pragma: no cover - manual test
     setup_logging(True)
-    log_message = logging.getLogger().info
-    log_message("test structured logging", extra={"component": "selftest"})
+    logging.getLogger().info(
+        "test structured logging", extra={"component": "selftest"}
+    )

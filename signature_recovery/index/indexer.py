@@ -6,7 +6,7 @@ from typing import Iterable
 
 from ..core.extractor import SignatureExtractor
 from ..core.pst_parser import PSTParser
-from template import log_message
+logger = logging.getLogger(__name__)
 from ..core.models import Signature
 from .search_index import SearchIndex
 
@@ -18,7 +18,7 @@ def add_batch(index: SearchIndex, signatures: Iterable[Signature]) -> None:
 
 def index_pst(pst_path: str, index: SearchIndex) -> None:
     """Extract signatures from ``pst_path`` and add them to ``index``."""
-    log_message(logging.INFO, f"Indexing {pst_path}")
+    logger.info("Indexing %s", pst_path)
     parser = PSTParser(pst_path)
     extractor = SignatureExtractor()
     for msg in parser.iter_messages():
@@ -27,9 +27,8 @@ def index_pst(pst_path: str, index: SearchIndex) -> None:
             if sig:
                 index.add(sig)
         except Exception as exc:  # pragma: no cover - defensive
-            log_message(
-                logging.ERROR,
-                f"indexing failed: {exc}",
-                component="indexer",
-                msg_id=msg.msg_id,
+            logger.error(
+                "indexing failed: %s",
+                exc,
+                extra={"component": "indexer", "msg_id": msg.msg_id},
             )

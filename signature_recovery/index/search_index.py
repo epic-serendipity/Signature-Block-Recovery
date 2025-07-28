@@ -7,7 +7,8 @@ import json
 from typing import Iterable, List
 
 from ..core.models import Signature, SignatureMetadata
-from ..core.pst_parser import log_message
+from ..core.logging import retry
+from template import log_message
 
 
 class SearchIndex:
@@ -31,6 +32,10 @@ class SQLiteFTSIndex(SearchIndex):
     def __init__(self, db_path: str) -> None:
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self._ensure_schema()
+
+    @retry(sqlite3.OperationalError, tries=3, delay=0.1)
+    def _commit(self):
+        self.conn.commit()
 
     def _ensure_schema(self) -> None:
         cur = self.conn.cursor()
@@ -56,7 +61,7 @@ class SQLiteFTSIndex(SearchIndex):
                 json.dumps(signature.metadata.__dict__),
             ),
         )
-        self.conn.commit()
+        self._commit()
 
     def add_batch(self, signatures: Iterable[Signature]) -> None:
         log_message(logging.DEBUG, "Indexing batch of signatures")
@@ -75,7 +80,7 @@ class SQLiteFTSIndex(SearchIndex):
                 for sig in signatures
             ],
         )
-        self.conn.commit()
+        self._commit()
 
     def query(self, q: str | None = None, *, min_confidence: float = 0.0) -> List[Signature]:
         """Return all matching signatures.

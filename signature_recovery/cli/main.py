@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Iterable, List
 
 from template import log_message
+from ..core.logging import setup_logging
 from .. import __version__
 
 from ..core.extractor import SignatureExtractor
@@ -72,12 +73,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _configure_logging(verbosity: int) -> None:
-    level = logging.WARNING
-    if verbosity == 1:
-        level = logging.INFO
-    elif verbosity >= 2:
-        level = logging.DEBUG
-    logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
+    setup_logging(verbose=verbosity > 0)
+    if verbosity > 1:
+        logging.getLogger().setLevel(logging.DEBUG)
 
 
 def handle_extract(args: argparse.Namespace) -> int:

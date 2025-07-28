@@ -5,7 +5,8 @@ import logging
 from typing import Iterable
 
 from ..core.extractor import SignatureExtractor
-from ..core.pst_parser import PSTParser, log_message
+from ..core.pst_parser import PSTParser
+from template import log_message
 from ..core.models import Signature
 from .search_index import SearchIndex
 
@@ -21,6 +22,14 @@ def index_pst(pst_path: str, index: SearchIndex) -> None:
     parser = PSTParser(pst_path)
     extractor = SignatureExtractor()
     for msg in parser.iter_messages():
-        sig = extractor.extract_signature(msg.body, msg.msg_id, msg.timestamp)
-        if sig:
-            index.add(sig)
+        try:
+            sig = extractor.extract_signature(msg.body, msg.msg_id, msg.timestamp)
+            if sig:
+                index.add(sig)
+        except Exception as exc:  # pragma: no cover - defensive
+            log_message(
+                logging.ERROR,
+                f"indexing failed: {exc}",
+                component="indexer",
+                msg_id=msg.msg_id,
+            )

@@ -3,6 +3,7 @@
 
 import logging
 import re
+import time
 from typing import List, Optional, Tuple, Iterable, Dict, Any
 
 from html import unescape
@@ -10,7 +11,7 @@ from html import unescape
 from .models import Signature
 from .parser import SignatureParser
 from .config import load_config
-from .pst_parser import log_message
+from template import log_message
 
 
 MAX_SIGNATURE_LINES = 10
@@ -126,11 +127,19 @@ class SignatureExtractor:
             def get_data(self) -> str:
                 return "".join(self._parts)
 
-        if '<html' in body.lower() or '<body' in body.lower():
-            stripper = _Stripper()
-            stripper.feed(body)
-            text = stripper.get_data()
-        else:
+        try:
+            if '<html' in body.lower() or '<body' in body.lower():
+                stripper = _Stripper()
+                stripper.feed(body)
+                text = stripper.get_data()
+            else:
+                text = body
+        except Exception as exc:  # pragma: no cover - defensive
+            log_message(
+                logging.WARNING,
+                f"html parse error: {exc}",
+                component="extractor",
+            )
             text = body
 
         collapsed = re.sub(r'[ \t]+', ' ', text)
@@ -148,14 +157,25 @@ class SignatureExtractor:
         self, body: str, message_id: str, timestamp: Optional[str] = None
     ) -> Optional[Signature]:
         """Return a signature if detected in ``body``."""
-        log_message(logging.DEBUG, "Extracting signature")
+        start_ts = time.time()
+        log_message(logging.DEBUG, "Extracting signature", component="extractor")
         raw_body = body
         clean_body = self._normalize_body(body)
         lines = clean_body.split("\n") if clean_body else []
         boundary: Optional[int] = None
         base_conf = 0.0
         for h in self.heuristics:
-            result = h.detect_boundary(lines, raw_body)
+            try:
+                result = h.detect_boundary(lines, raw_body)
+            except Exception as exc:  # pragma: no cover - defensive
+                log_message(
+                    logging.WARNING,
+                    f"heuristic error: {exc}",
+                    component="extractor",
+                    msg_id=message_id,
+                    heuristic_used=h.__class__.__name__,
+                )
+                continue
             if result is not None:
                 boundary, base_conf = result
                 break
@@ -182,11 +202,21 @@ class SignatureExtractor:
         if meta.name:
             conf += 0.05
         confidence = min(conf, 1.0)
-        return Signature(
+        sig = Signature(
             text=text,
             source_msg_id=message_id,
             timestamp=timestamp,
             metadata=meta,
             confidence=confidence,
         )
+        duration_ms = (time.time() - start_ts) * 1000
+        log_message(
+            logging.INFO,
+            "extracted signature",
+            component="extractor",
+            msg_id=message_id,
+            duration_ms=round(duration_ms, 2),
+            confidence=confidence,
+        )
+        return sig
 

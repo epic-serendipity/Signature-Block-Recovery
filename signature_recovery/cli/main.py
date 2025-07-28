@@ -3,6 +3,7 @@
 
 # Imports
 import argparse
+import argcomplete
 import json
 import logging
 import os
@@ -68,6 +69,9 @@ def _build_parser() -> argparse.ArgumentParser:
     exp.add_argument("--date-from", type=float, help="Start timestamp filter")
     exp.add_argument("--date-to", type=float, help="End timestamp filter")
     exp.set_defaults(func=handle_export)
+
+    # Enable shell completion
+    argcomplete.autocomplete(parser)
 
     return parser
 

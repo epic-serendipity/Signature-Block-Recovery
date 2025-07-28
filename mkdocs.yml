@@ -1,0 +1,8 @@
+site_name: Signature Recovery
+nav:
+  - Home: README.md
+  - Installation: installation.md
+  - CLI Usage: cli_usage.md
+  - GUI Usage: gui_usage.md
+  - API Reference: api_reference.md
+  - Troubleshooting: troubleshooting.md

@@ -115,7 +115,7 @@ def handle_extract(args: argparse.Namespace) -> int:
                 msg.msg_id,
                 sig is not None,
                 sig.confidence if sig else 0.0,
-                elapsed_ms,
+                duration_ms,
             )
         )
         return sig

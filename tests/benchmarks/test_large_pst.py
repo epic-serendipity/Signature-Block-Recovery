@@ -6,12 +6,6 @@ from pathlib import Path
 import pytest
 
 
-@pytest.fixture(autouse=True)
-def _skip(request):
-    if not request.config.getoption("--benchmark"):
-        pytest.skip("benchmark tests skipped")
-
-
 def test_large_pst(tmp_path):
     pst_path = os.environ.get("LARGE_PST_PATH")
     if not pst_path or not Path(pst_path).is_file():

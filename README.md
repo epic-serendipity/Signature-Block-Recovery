@@ -48,7 +48,7 @@ A Tkinter GUI can be launched via `python -m signature_recovery.gui.app`.
 
 ```
 ┌─────────────── Search ────────────────┐
-│ [ query ________ ] [ Search ]          │
+│ [ query ________ ] [ Search ]         │
 ├────────────── Filters ────────────────┤
 │ Start [YYYY-MM-DD] End [YYYY-MM-DD]   │
 │ Company [multi-select]                │

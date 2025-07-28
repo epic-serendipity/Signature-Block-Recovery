@@ -9,11 +9,7 @@ from typing import Iterable, List
 
 from dataclasses import fields
 from .models import Signature, SignatureMetadata
-from .pst_parser import log_message
-from .logging import setup_logging
-
-
-setup_logging()
+logger = logging.getLogger(__name__)
 
 
 def _normalize(text: str) -> str:
@@ -42,11 +38,13 @@ def dedupe_signatures(
             try:
                 ratio = _similar(sig_norm, norms[idx])
             except Exception as exc:  # pragma: no cover - defensive
-                log_message(
-                    logging.ERROR,
-                    f"dedupe error: {exc}",
-                    component="deduplicator",
-                    msg_id=sig.source_msg_id,
+                logger.error(
+                    "dedupe error: %s",
+                    exc,
+                    extra={
+                        "component": "deduplicator",
+                        "msg_id": sig.source_msg_id,
+                    },
                 )
                 ratio = 0.0
             if ratio >= threshold:
@@ -61,16 +59,22 @@ def dedupe_signatures(
                             setattr(u.metadata, f.name, val)
                 if sig.confidence > u.confidence:
                     u.confidence = sig.confidence
-                log_message(
-                    logging.INFO,
-                    f"Merged signature {sig.source_msg_id} into {u.source_msg_id} (ratio={ratio:.2f})",
+                logger.info(
+                    "Merged signature %s into %s (ratio=%.2f)",
+                    sig.source_msg_id,
+                    u.source_msg_id,
+                    ratio,
                 )
                 merged = True
                 break
         if not merged:
             uniques.append(sig)
             norms.append(sig_norm)
-    log_message(logging.INFO, f"Reduced {len(sig_list)} → {len(uniques)} signatures")
+    logger.info(
+        "Reduced %d \u2192 %d signatures",
+        len(sig_list),
+        len(uniques),
+    )
     return uniques
 
 

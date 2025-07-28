@@ -191,7 +191,7 @@
   - Primary OS: Windows (should still run on Linux/macOS)
   - Python version: No strict constraint—use the easiest supported version
   - Third-party libraries: Allowed but kept to a minimum; installers/requirements must be user-friendly for non-technical users
-- **Error Handling & Logging** (**In Progress**)
+- **Error Handling & Logging** (**Complete**)
   - Layered exception handling at each pipeline stage (I/O, parsing, extraction, dedupe) with recoverable errors logged as `WARNING` and fatal errors as `ERROR`
   - Structured logs (JSON or key-value) including context (`msg_id`, `heuristic_used`, `duration_ms`, `confidence`)
   - Log levels: `DEBUG` for internals, `INFO` for progress, `WARNING` for recoverable skips, `ERROR/CRITICAL` for unrecoverable conditions
@@ -200,7 +200,7 @@
     - Rotating file handler (all levels)
   - Retries: Exponential back-off for transient I/O errors
   - GUI alerts: Show warnings/errors in a dedicated "Alerts" panel
-  - `signature_recovery/core/logging.py` — structured logging and retry utilities (**In Progress**)
+  - `signature_recovery/core/logging.py` — structured logging and retry utilities (**Complete**)
 - **Security & Privacy**
   - Handling of sensitive data (PII) in signatures
   - Access controls on extracted data

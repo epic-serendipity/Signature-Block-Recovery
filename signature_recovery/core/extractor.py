@@ -11,7 +11,8 @@ from html import unescape
 from .models import Signature
 from .parser import SignatureParser
 from .config import load_config
-from template import log_message
+
+logger = logging.getLogger(__name__)
 
 
 MAX_SIGNATURE_LINES = 10
@@ -135,10 +136,10 @@ class SignatureExtractor:
             else:
                 text = body
         except Exception as exc:  # pragma: no cover - defensive
-            log_message(
-                logging.WARNING,
-                f"html parse error: {exc}",
-                component="extractor",
+            logger.warning(
+                "html parse error: %s",
+                exc,
+                extra={"component": "extractor"},
             )
             text = body
 
@@ -158,7 +159,7 @@ class SignatureExtractor:
     ) -> Optional[Signature]:
         """Return a signature if detected in ``body``."""
         start_ts = time.time()
-        log_message(logging.DEBUG, "Extracting signature", component="extractor")
+        logger.debug("Extracting signature", extra={"component": "extractor"})
         raw_body = body
         clean_body = self._normalize_body(body)
         lines = clean_body.split("\n") if clean_body else []
@@ -168,12 +169,14 @@ class SignatureExtractor:
             try:
                 result = h.detect_boundary(lines, raw_body)
             except Exception as exc:  # pragma: no cover - defensive
-                log_message(
-                    logging.WARNING,
-                    f"heuristic error: {exc}",
-                    component="extractor",
-                    msg_id=message_id,
-                    heuristic_used=h.__class__.__name__,
+                logger.warning(
+                    "heuristic error: %s",
+                    exc,
+                    extra={
+                        "component": "extractor",
+                        "msg_id": message_id,
+                        "heuristic_used": h.__class__.__name__,
+                    },
                 )
                 continue
             if result is not None:
@@ -210,13 +213,14 @@ class SignatureExtractor:
             confidence=confidence,
         )
         duration_ms = (time.time() - start_ts) * 1000
-        log_message(
-            logging.INFO,
+        logger.info(
             "extracted signature",
-            component="extractor",
-            msg_id=message_id,
-            duration_ms=round(duration_ms, 2),
-            confidence=confidence,
+            extra={
+                "component": "extractor",
+                "msg_id": message_id,
+                "duration_ms": round(duration_ms, 2),
+                "confidence": confidence,
+            },
         )
         return sig
 

@@ -10,9 +10,10 @@ from typing import Iterable, List
 from dataclasses import fields
 from .models import Signature, SignatureMetadata
 from .pst_parser import log_message
+from .logging import setup_logging
 
 
-logging.basicConfig(level=logging.INFO)
+setup_logging()
 
 
 def _normalize(text: str) -> str:
@@ -38,7 +39,16 @@ def dedupe_signatures(
         sig_norm = _normalize(sig.text)
         merged = False
         for idx, u in enumerate(uniques):
-            ratio = _similar(sig_norm, norms[idx])
+            try:
+                ratio = _similar(sig_norm, norms[idx])
+            except Exception as exc:  # pragma: no cover - defensive
+                log_message(
+                    logging.ERROR,
+                    f"dedupe error: {exc}",
+                    component="deduplicator",
+                    msg_id=sig.source_msg_id,
+                )
+                ratio = 0.0
             if ratio >= threshold:
                 if sig.timestamp and (
                     not u.timestamp or sig.timestamp < u.timestamp

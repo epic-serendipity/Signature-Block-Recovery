@@ -12,9 +12,10 @@ from tkinter import ttk
 
 from ..index.search_index import SearchIndex, SQLiteFTSIndex
 from template import log_message
+from ..core.logging import setup_logging
 
 # Logging configuration
-logging.basicConfig(level=logging.INFO)
+setup_logging()
 
 # Global state
 DEFAULT_PAGE_SIZE = 10
@@ -188,6 +189,35 @@ class DetailPanel(tk.LabelFrame):
         self.text.config(state=tk.DISABLED)
 
 
+class AlertsPanel(tk.LabelFrame):
+    """Display recent warning/error log messages."""
+
+    def __init__(self, master: tk.Misc) -> None:
+        super().__init__(master, text="Alerts")
+        self.listbox = tk.Listbox(self, height=4)
+        self.listbox.pack(fill=tk.BOTH, expand=True)
+
+    def add_alert(self, msg: str) -> None:
+        self.listbox.insert(0, msg)
+        if self.listbox.size() > 100:
+            self.listbox.delete(100, tk.END)
+
+
+class _GuiLogHandler(logging.Handler):
+    """Send warning/error logs to the GUI alerts panel."""
+
+    def __init__(self, panel: AlertsPanel) -> None:
+        super().__init__(level=logging.WARNING)
+        self.panel = panel
+
+    def emit(self, record: logging.LogRecord) -> None:
+        msg = self.format(record)
+        try:
+            self.panel.add_alert(msg)
+        except Exception:
+            pass
+
+
 class App(tk.Tk):
     """Main Tk application."""
 
@@ -218,6 +248,13 @@ class App(tk.Tk):
 
         self.detail_panel = DetailPanel(self)
         self.detail_panel.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
+
+        self.alerts_panel = AlertsPanel(self)
+        self.alerts_panel.pack(fill=tk.BOTH, expand=False, padx=5, pady=2)
+
+        handler = _GuiLogHandler(self.alerts_panel)
+        handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+        logging.getLogger().addHandler(handler)
 
         # Seed filter lists using all signatures in the index
         self._seed_filters()

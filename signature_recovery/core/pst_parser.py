@@ -13,6 +13,7 @@ from typing import Iterator, List, Optional
 
 from signature_recovery.core.models import Message
 from template import log_message  # our helper
+from .logging import retry
 
 logger = logging.getLogger("PSTParser")
 logger.setLevel(logging.INFO)
@@ -34,8 +35,17 @@ class PSTParser:
             raise
 
         self._pst = pypff.file()
-        self._pst.open(pst_path)
+        self._open(pst_path)
         log_message("info", f"Opened PST file: {pst_path}")
+
+    @retry(Exception, tries=3, delay=0.5)
+    def _open(self, path: str) -> None:
+        """Open PST file with retries."""
+        try:
+            self._pst.open(path)
+        except Exception:
+            log_message("error", f"Failed to open PST: {path}", component="pst_parser")
+            raise
 
     def iter_messages(
         self,
@@ -78,6 +88,8 @@ class PSTParser:
                     log_message(
                         "warning",
                         f"Failed to read message #{i} in folder {folder.name}: {e}",
+                        component="pst_parser",
+                        msg_id=f"{folder.name}/{i}",
                     )
                     continue
 

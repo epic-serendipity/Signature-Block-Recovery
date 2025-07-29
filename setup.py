@@ -1,7 +1,8 @@
 from pathlib import Path
 from setuptools import setup, find_packages
 
-README = Path(__file__).with_name("README.md").read_text()
+# Explicitly read README with UTF-8 to avoid encoding issues on Windows
+README = Path(__file__).with_name("README.md").read_text(encoding="utf-8")
 
 setup(
     name="signature_recovery",

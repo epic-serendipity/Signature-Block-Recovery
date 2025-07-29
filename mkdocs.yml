@@ -1,7 +1,6 @@
 site_name: Signature Block Recovery
 nav:
   - Home: index.md
-  - Installation: installation.md
   - Quick Start: quickstart.md
   - CLI Usage: cli_usage.md
   - GUI Usage: gui_usage.md

@@ -28,6 +28,7 @@
   - Configuration & Tuning (**Complete**)
   - Confidence Scoring (**In Progress**)
   - Metrics & Observability (**In Progress**)
+  - Error Handling & Logging (**Complete**)
 - **Files**
   - `signature_recovery/core/models.py` — dataclass for signature records and messages; add `Signature.confidence` (**Complete**)
   - `signature_recovery/core/pst_parser.py` — streaming PST parser (**Complete**)
@@ -36,6 +37,7 @@
   - `signature_recovery/core/parser.py` — parse names, emails, phones (**Complete**)
   - `signature_recovery/core/config.py` — load YAML configuration (**Complete**)
   - `signature_recovery/core/metrics.py` — runtime metrics aggregation (**In Progress**)
+  - `signature_recovery/core/logging.py` — structured logging and retry utilities (**Complete**)
   - `config.example.yaml` — sample configuration (**Complete**)
 
 ### Indexing
@@ -131,7 +133,7 @@
   - Benchmark tests (**Complete**)
   - Benchmark CI job (nightly) (**Complete**)
   - Skip benchmarks in default test runs (**Complete**)
-  - Build and upload docs and installers (**Planned**)
+  - Build and upload docs and installers (**Complete**)
 - **Files**
 - `.github/workflows/ci.yml` — CI workflow (**Complete**)
   - `.github/workflows/benchmarks.yml` — nightly benchmark CI (**Complete**)

@@ -13,7 +13,6 @@
   - `completion/recover-signatures.zsh` — zsh completion script (**Planned**)
   - `mkdocs.yml` — documentation site configuration (**Planned**)
   - `docs/index.md` — homepage (**Planned**)
-  - `docs/installation.md` — installation guide (**Planned**)
   - `docs/quickstart.md` — quick start tutorial (**Planned**)
   - `docs/cli_usage.md` — CLI reference (**Planned**)
   - `docs/gui_usage.md` — GUI reference (**Planned**)
@@ -75,6 +74,9 @@
   - Sort options on columns (**Complete**)
   - "*" or blank search shows all results (**Complete**)
   - Filter panel seeded on startup (**Complete**)
+  - First-Run Wizard for PST selection & index location (**Planned**)
+  - Automatic extraction progress bar (**Planned**)
+  - File menu for New Extraction / Open Index (**Planned**)
 - **Files**
   - `signature_recovery/gui/app.py` — full-featured Tkinter application with modular panels; filter listboxes exposed as `company` and `title` (**Complete**)
   - `tests/test_gui.py` — GUI integration tests with event-loop sync (**Complete**)

@@ -2,15 +2,19 @@
 """Tkinter GUI with search, filters, pagination and sorting."""
 
 # Imports
+import json
 import logging
+import os
 import queue
 import threading
 from datetime import datetime
 from functools import partial
+from pathlib import Path
 import tkinter as tk
-from tkinter import ttk
+from tkinter import filedialog, messagebox, ttk
 
 from ..index.search_index import SearchIndex, SQLiteFTSIndex
+from ..index.indexer import index_pst
 from template import log_message
 from ..core.logging import setup_logging
 
@@ -19,6 +23,74 @@ setup_logging()
 
 # Global state
 DEFAULT_PAGE_SIZE = 10
+CONFIG_PATH = (
+    Path(os.getenv("APPDATA") or Path.home() / ".config")
+    / "SignatureRecovery"
+    / "config.json"
+)
+
+
+def load_user_config() -> dict | None:
+    """Return config dict if available."""
+    if CONFIG_PATH.is_file():
+        try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as exc:  # pragma: no cover - defensive
+            log_message("warning", f"Failed to load config: {exc}")
+    return None
+
+
+def save_user_config(cfg: dict) -> None:
+    """Persist ``cfg`` to ``CONFIG_PATH``."""
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(cfg, f)
+    except Exception as exc:  # pragma: no cover - defensive
+        log_message("error", f"Failed to save config: {exc}")
+
+
+class SetupWizard(tk.Toplevel):
+    """Simple first-run dialog to select PSTs and index path."""
+
+    def __init__(self, master: tk.Misc):
+        super().__init__(master)
+        self.title("First-Time Setup")
+        self.resizable(False, False)
+
+        tk.Label(self, text="PST files:").grid(row=0, column=0, padx=5, pady=5)
+        self.pst_var = tk.StringVar()
+        tk.Entry(self, textvariable=self.pst_var, width=40).grid(row=0, column=1, padx=5, pady=5)
+        tk.Button(self, text="Browse", command=self._choose_psts).grid(row=0, column=2, padx=5, pady=5)
+
+        tk.Label(self, text="Index location:").grid(row=1, column=0, padx=5, pady=5)
+        self.idx_var = tk.StringVar()
+        tk.Entry(self, textvariable=self.idx_var, width=40).grid(row=1, column=1, padx=5, pady=5)
+        tk.Button(self, text="Browse", command=self._choose_index).grid(row=1, column=2, padx=5, pady=5)
+
+        tk.Button(self, text="Start", command=self._finish).grid(row=2, column=1, pady=10)
+
+        self.result = None
+
+    def _choose_psts(self) -> None:
+        files = filedialog.askopenfilenames(filetypes=[("PST files", "*.pst")])
+        if files:
+            self.pst_var.set(";".join(files))
+
+    def _choose_index(self) -> None:
+        path = filedialog.asksaveasfilename(defaultextension=".db", filetypes=[("Database", "*.db")])
+        if path:
+            self.idx_var.set(path)
+
+    def _finish(self) -> None:
+        psts = [p for p in self.pst_var.get().split(";") if p]
+        idx = self.idx_var.get()
+        if not psts or not idx:
+            messagebox.showerror("Error", "Please select PST files and index path")
+            return
+        self.result = {"psts": psts, "index": idx}
+        self.destroy()
 
 
 class SearchPanel(tk.Frame):
@@ -226,7 +298,22 @@ class App(tk.Tk):
         self.title("Signature Recovery")
         self.geometry("800x600")
 
+        self._build_menu()
+
         self.index = index
+        cfg = None
+        if self.index is None:
+            cfg = load_user_config()
+            if not cfg:
+                wizard = SetupWizard(self)
+                self.wait_window(wizard)
+                cfg = wizard.result
+                if cfg:
+                    save_user_config(cfg)
+        if cfg:
+            self._start_extraction(cfg["psts"], cfg["index"])
+            self.index = SQLiteFTSIndex(cfg["index"])
+
         self.queue: queue.Queue = queue.Queue()
         self.sort_field = "Date"
         self.sort_dir = "asc"
@@ -309,13 +396,22 @@ class App(tk.Tk):
         if not self.active:
             return
         try:
-            results = self.queue.get_nowait()
+            item = self.queue.get_nowait()
         except queue.Empty:
             pass
         else:
-            self._display_results(results)
-            self.search_panel.enable()
-            self.pagination_panel.enable()
+            if isinstance(item, tuple) and item[0] == "progress":
+                count, total = item[1], item[2]
+                self.progress_var.set(f"Processing PST {count} of {total}...")
+            elif item == "complete":
+                if hasattr(self, "progress_win"):
+                    self.progress_win.destroy()
+                self._seed_filters()
+            else:
+                results = item
+                self._display_results(results)
+                self.search_panel.enable()
+                self.pagination_panel.enable()
         self.poll_id = self.after(100, self._poll_queue)
 
     def _display_results(self, results) -> None:
@@ -417,6 +513,48 @@ class App(tk.Tk):
         global_index = (self.current_page - 1) * self.page_size + idx
         if 0 <= global_index < len(self.results):
             self.detail_panel.show(self.results[global_index])
+
+    # Menu and extraction -----------------------------------------------------
+    def _build_menu(self) -> None:
+        menu = tk.Menu(self)
+        file_menu = tk.Menu(menu, tearoff=0)
+        file_menu.add_command(label="New Extraction", command=self._new_extraction)
+        file_menu.add_command(label="Open Index", command=self._open_index)
+        menu.add_cascade(label="File", menu=file_menu)
+        self.config(menu=menu)
+
+    def _new_extraction(self) -> None:
+        wizard = SetupWizard(self)
+        self.wait_window(wizard)
+        cfg = wizard.result
+        if not cfg:
+            return
+        save_user_config(cfg)
+        self._start_extraction(cfg["psts"], cfg["index"])
+        self.index = SQLiteFTSIndex(cfg["index"])
+        self._seed_filters()
+
+    def _open_index(self) -> None:
+        path = filedialog.askopenfilename(filetypes=[("Database", "*.db")])
+        if path:
+            self.index = SQLiteFTSIndex(path)
+            self._seed_filters()
+
+    def _start_extraction(self, pst_files, index_path) -> None:
+        self.progress_win = tk.Toplevel(self)
+        self.progress_win.title("Extracting")
+        self.progress_var = tk.StringVar(value="Starting...")
+        tk.Label(self.progress_win, textvariable=self.progress_var).pack(padx=10, pady=10)
+        thread = threading.Thread(target=self._extract_thread, args=(pst_files, index_path), daemon=True)
+        thread.start()
+
+    def _extract_thread(self, pst_files, index_path) -> None:
+        index = SQLiteFTSIndex(index_path)
+        total = len(pst_files)
+        for i, pst in enumerate(pst_files, 1):
+            index_pst(pst, index)
+            self.queue.put(("progress", i, total))
+        self.queue.put("complete")
 
 
 def main() -> None:

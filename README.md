@@ -7,77 +7,18 @@ This repository will contain tooling for extracting or reconstructing signature 
 - Documentation outlining the project goals and future development steps.
 - Guidelines for Codex automation via `AGENTS.md`.
 
-## Getting Started
+## Quick-Start (GUI Only)
 
-The project now contains initial implementation of the core modules.
+1. **Download & Install**  
+   - **Windows:** Run `SignatureRecoverySetup.msi`, then double-click the desktop icon.  
+   - **macOS:** Open the `.dmg` and drag “Signature Recovery” to Applications.  
 
-### CLI Usage
+2. **First-Time Setup**  
+   - On launch, point to your PST file(s) and choose where to save the index.  
+   - Extraction will run automatically; wait for “Extraction Complete”.
 
-The project ships a `recover-signatures` command line tool with three subcommands.
-Check the version at any time using:
-
-```bash
-recover-signatures --version
-```
-
-Run extraction on a PST file and build an index:
-
-```bash
-recover-signatures extract --input mail.pst --index sigs.db --threads 4 --batch-size 500
-```
-
-Search the index for a term:
-
-```bash
-recover-signatures query --index sigs.db --q "John Doe" --page 1 --size 5
-```
-
-Export all signatures to CSV:
-
-```bash
-recover-signatures export --index sigs.db --format csv --out sigs.csv
-```
-
-Global flags such as `--threads`, `--batch-size`, `--min-confidence`, `--metrics`,
-and `--dump-metrics metrics.json` apply to all subcommands and control filtering
-and performance reporting.
-
-#### Shell Completion
-
-Bash and Zsh completion scripts are provided in the `completion/` directory.
-Source the appropriate file in your shell to enable tab completion:
-
-```bash
-source completion/recover-signatures.bash   # bash
-# or
-source completion/recover-signatures.zsh    # zsh
-```
-
-Install them to your system's completion folder if you want global completion.
-
-A Tkinter GUI can be launched via `python -m signature_recovery.gui.app`.
-
-## GUI Usage
-
-```
-┌─────────────── Search ────────────────┐
-│ [ query ________ ] [ Search ]         │
-├────────────── Filters ────────────────┤
-│ Start [YYYY-MM-DD] End [YYYY-MM-DD]   │
-│ Company [multi-select]                │
-│ Title   [multi-select]                │
-├────────────── Results ────────────────┤
-│ Name | Company | Title | Date | Conf. │
-│---------------------------------------│
-│ ...                                   │
-├──────────── Pagination ───────────────┤
-│ [Prev] [Next] PageSize [5▼] Page X/Y  │
-└───────────────────────────────────────┘
-```
-
-Use the search box to query the index. Filters can narrow results by date range,
-company, or title. Column headers are clickable to sort ascending/descending.
-Pagination controls step through result pages and adjust the page size.
+3. **Search & Export**  
+   - Use the search box, adjust filters/confidence, then click **Export** to CSV/JSON/Excel.  
 
 ## Core Architecture
 

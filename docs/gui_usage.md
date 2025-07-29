@@ -1,10 +1,7 @@
 # GUI Usage
 
-Launch the interface:
-
-```bash
-recover-signatures gui --index sigs.db
-```
+Launch the interface by double-clicking the **Signature Recovery** desktop icon.
+On first run, select your PST file(s) and index location when prompted.
 
 The window contains several panels:
 

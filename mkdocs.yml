@@ -1,8 +1,14 @@
-site_name: Signature Recovery
+site_name: Signature Block Recovery
 nav:
-  - Home: README.md
+  - Home: index.md
   - Installation: installation.md
+  - Quick Start: quickstart.md
   - CLI Usage: cli_usage.md
   - GUI Usage: gui_usage.md
   - API Reference: api_reference.md
   - Troubleshooting: troubleshooting.md
+theme:
+  name: material
+markdown_extensions:
+  - admonition
+  - codehilite

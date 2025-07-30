@@ -1,0 +1,2 @@
+[console_scripts]
+recover-signatures = signature_recovery.cli.main:main

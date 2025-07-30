@@ -13,12 +13,7 @@ setup(
     packages=find_packages(),
     py_modules=["template"],
     install_requires=[
-        "flask>=2.0.0",       # for signature_recovery.api
-        "openpyxl>=3.0.0",    # for signature_recovery.exporter Excel support
-        "pandas>=1.0.0",      # if used for JSON/CSV conversions in exporter
-        "pyyaml>=5.4",        # YAML-based configuration
-        "pyvirtualdisplay>=3.0",  # headless GUI tests
-        "argcomplete>=3.0",   # shell completion support
+        "pypff>=0.6.0",  # PST parsing library
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -27,7 +22,8 @@ setup(
     ],
     entry_points={
         "console_scripts": [
+            "recover-gui=signature_recovery.gui.app:main",
             "recover-signatures=signature_recovery.cli.main:main",
-        ],
+        ]
     },
 )

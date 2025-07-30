@@ -36,24 +36,16 @@ DEFAULT_CONFIG: Dict[str, Any] = {
 # Classes/Functions
 
 def load_config(path: str | None = None) -> Dict[str, Any]:
-    """Load configuration from a YAML file if provided, else return defaults."""
-    if path is None:
+    """Load configuration from a JSON file if provided, else return defaults."""
+    if not path:
         return DEFAULT_CONFIG
 
     if not os.path.isfile(path):
         logger.warning(f"Config file not found at {path}, using defaults")
         return DEFAULT_CONFIG
 
-    try:
-        import yaml
-    except ImportError as e:  # pragma: no cover - runtime guard
-        raise RuntimeError(
-            "PyYAML is required to load configuration files. "
-            "Please install with `pip install pyyaml`."
-        ) from e
-
     with open(path, "r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f)
+        cfg = json.load(f)
 
     merged = DEFAULT_CONFIG.copy()
     merged.update(cfg or {})

@@ -40,7 +40,7 @@
 - **Files**
   - `signature_recovery/cli/main.py`
   - `setup.py` / `pyproject.toml` — entry points
-  - `requirements.txt`
+  - `requirements.txt` — placeholder; core deps in `pyproject.toml`, PST support via `[pst]` extra
   - `tests/test_recover_signatures.py`
 
 ### GUI
@@ -83,7 +83,7 @@
 
 ### Platform & Dependencies
 - **Dependencies**
-  - Third-party PST parser (`pypff`) is now an optional extra (`[pst]`) to ease install for non-technical users.
+  - Third-party PST parser (`pypff`) is now an optional extra (`[pst]`) defined in `setup.py` and `pyproject.toml` to ease install for non-technical users.
 
 ## Status
 

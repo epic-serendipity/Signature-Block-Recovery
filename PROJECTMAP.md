@@ -83,7 +83,7 @@
 
 ### Platform & Dependencies
 - **Dependencies**
-  - Third-party PST parser (`pypff`) is now an optional extra (`[pst]`) defined in `setup.py` and `pyproject.toml` to ease install for non-technical users.
+  - PST parsing via `pypff` is optional; users must install `pypff` themselves (e.g., `conda install -c conda-forge pypff`) and then `pip install signature-recovery[pst]`
 
 ## Status
 

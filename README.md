@@ -14,6 +14,27 @@ Recover email signature blocks from PST files.
   pip install signature-recovery[pst]
   ```
 
+#### PST Parsing Support (Optional)
+
+If you need to extract directly from Outlook PST files, you’ll need `pypff`, which isn’t available on PyPI.  
+
+1. **Via Conda** (recommended):
+   ```bash
+   conda install -c conda-forge pypff
+   ```
+
+2. **Build from source**:
+
+   * Clone the libpff repo: `git clone https://github.com/libyal/libpff.git`
+   * Follow its build instructions to install `pypff` into your Python.
+3. **Then install our extras**:
+
+   ```bash
+   pip install signature-recovery[pst]
+   ```
+
+Without `pypff`, you can still use all GUI and CLI features on existing indexes—you just won’t be able to run `extract --input file.pst` until it’s installed.
+
 ## Quick Start
 
 1. **Download the Installer**  

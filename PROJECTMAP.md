@@ -9,15 +9,8 @@
   - `README.md` — project overview
   - `AGENTS.md` — Codex automation rules
   - `PROJECTMAP.md` — project map and planning questions
-  - `completion/recover-signatures.bash` — bash completion script (**Planned**)
-  - `completion/recover-signatures.zsh` — zsh completion script (**Planned**)
+  - GUI installers available on GitHub Releases page (**Complete**)
   - `mkdocs.yml` — documentation site configuration (**Planned**)
-  - `docs/index.md` — homepage (**Planned**)
-  - `docs/quickstart.md` — quick start tutorial (**Planned**)
-  - `docs/cli_usage.md` — CLI reference (**Planned**)
-  - `docs/gui_usage.md` — GUI reference (**Planned**)
-  - `docs/api_reference.md` — API docs (**Planned**)
-  - `docs/troubleshooting.md` — troubleshooting tips (**Planned**)
 
 ### Signature Recovery Core
 - **Features**
@@ -54,11 +47,7 @@
 
 ### CLI
 - **Features**
-  - Headless extraction entry point (**Complete**)
-  - Expose `query` subcommand for on-demand search (**Complete**)
-  - Export results to CSV/JSON/Excel (**Complete**)
-  - Metrics dump (`--metrics`, `--dump-metrics`) (**Complete**)
-  - Version flag and standardized exit codes (**Complete**)
+  - Command-line interface for extract, query, export, and gui launch (**Complete**)
 - **Files**
   - `signature_recovery/cli/main.py` — full argparse interface with all subcommands and flags (**Complete**)
   - `tests/test_cli.py` — comprehensive CLI integration tests (**Complete**)
@@ -141,20 +130,18 @@
   - Skip benchmarks in default test runs (**Complete**)
   - Build and upload docs and installers (**Complete**)
   - Documentation site publish to GitHub Pages (**Planned**)
-  - Build Windows MSI installer (**Planned**)
-  - Build macOS DMG installer (**Planned**)
+  - GUI installers available on GitHub Releases page (**Complete**)
   - Docker container build & publish (**Planned**)
 - **Files**
 - `.github/workflows/ci.yml` — CI workflow (**Complete**)
   - `.github/workflows/benchmarks.yml` — nightly benchmark CI (**Complete**)
   - `.github/workflows/docs.yml` — build and publish documentation (**Planned**)
-  - `docs/performance/` — directory for profiling reports (**Complete**)
 
 ### Release
 - **Features**
   - Packaging wheels and source distributions (**In Progress**)
   - Standalone executables with PyInstaller (**In Progress**)
-  - GUI installers for Windows and macOS (**In Progress**)
+  - GUI installers available on GitHub Releases page (**Complete**)
   - Release workflow documentation (**Complete**)
 
 ## Open Planning Questions

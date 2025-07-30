@@ -7,18 +7,57 @@ This repository will contain tooling for extracting or reconstructing signature 
 - Documentation outlining the project goals and future development steps.
 - Guidelines for Codex automation via `AGENTS.md`.
 
-## Quick-Start (GUI Only)
+## Quick-Start (GUI or CLI)
 
-1. **Download & Install**  
-   - **Windows:** Run `SignatureRecoverySetup.msi`, then double-click the desktop icon.  
-   - **macOS:** Open the `.dmg` and drag “Signature Recovery” to Applications.  
+### GUI Installation
 
-2. **First-Time Setup**  
-   - On launch, point to your PST file(s) and choose where to save the index.  
-   - Extraction will run automatically; wait for “Extraction Complete”.
+1. **Download the Installer**  
+   Visit our [GitHub Releases page](https://github.com/YourOrg/Signature-Block-Recovery/releases) and grab the latest:  
+   - `SignatureRecoverySetup.msi` for Windows  
+   - `SignatureRecovery.dmg` for macOS
 
-3. **Search & Export**  
-   - Use the search box, adjust filters/confidence, then click **Export** to CSV/JSON/Excel.  
+2. **Install**  
+   - **Windows:** Double-click the `.msi`—no admin rights needed.  
+   - **macOS:** Open the `.dmg` and drag “Signature Recovery” into Applications.
+
+3. **Launch**  
+   - Click the desktop icon (Windows) or open from Launchpad (macOS).
+
+### CLI Installation & Usage
+
+If you prefer the command line or need scripting:
+
+```bash
+pip install signature-recovery
+```
+
+* **Extract** signatures:
+
+  ```bash
+  recover-signatures extract --input my.pst --index sigs.db
+  ```
+* **Query** the index:
+
+  ```bash
+  recover-signatures query --index sigs.db --filter "john.doe"
+  ```
+* **Export** results:
+
+  ```bash
+  recover-signatures export --index sigs.db --format csv --output signatures.csv
+  ```
+* **GUI** from CLI:
+
+  ```bash
+  recover-signatures gui --index sigs.db
+  ```
+* **Help** and flags:
+
+  ```bash
+  recover-signatures --help
+  ```
+
+---
 
 ## Core Architecture
 

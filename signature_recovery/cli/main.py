@@ -3,7 +3,6 @@
 
 # Imports
 import argparse
-import argcomplete
 import json
 import logging
 import os
@@ -21,7 +20,7 @@ from ..core.deduplicator import dedupe_signatures
 from ..core.metrics import MetricsCollector, MessageMetric
 from ..core.models import Message, Signature
 from ..core.pst_parser import PSTParser
-from ..exporter import export_to_csv, export_to_json, export_to_excel
+from ..exporter import export_to_csv, export_to_json
 from ..index.indexer import add_batch
 from ..index.search_index import SQLiteFTSIndex
 
@@ -63,15 +62,12 @@ def _build_parser() -> argparse.ArgumentParser:
 
     exp = sub.add_parser("export", help="Export signatures from an index")
     exp.add_argument("--index", required=True, help="Path to SQLite FTS index")
-    exp.add_argument("--format", choices=["csv", "json", "excel"], required=True, help="Output format")
+    exp.add_argument("--format", choices=["csv", "json"], required=True, help="Output format")
     exp.add_argument("--out", required=True, help="Output file path")
     exp.add_argument("--q", help="Optional search query filter")
     exp.add_argument("--date-from", type=float, help="Start timestamp filter")
     exp.add_argument("--date-to", type=float, help="End timestamp filter")
     exp.set_defaults(func=handle_export)
-
-    # Enable shell completion
-    argcomplete.autocomplete(parser)
 
     return parser
 
@@ -203,10 +199,8 @@ def handle_export(args: argparse.Namespace) -> int:
     fmt = args.format
     if fmt == "csv":
         export_to_csv(results, args.out)
-    elif fmt == "json":
-        export_to_json(results, args.out)
     else:
-        export_to_excel(results, args.out)
+        export_to_json(results, args.out)
     return 0
 
 

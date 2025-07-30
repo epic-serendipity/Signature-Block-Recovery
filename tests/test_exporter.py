@@ -3,7 +3,7 @@ import csv
 from pathlib import Path
 
 from signature_recovery.core.models import Signature, SignatureMetadata
-from signature_recovery.exporter import export_to_csv, export_to_json, export_to_excel
+from signature_recovery.exporter import export_to_csv, export_to_json
 
 
 def _sample_signatures():
@@ -25,9 +25,3 @@ def test_export_json(tmp_path):
     export_to_json(_sample_signatures(), str(path))
     data = json.loads(path.read_text())
     assert data[0]["name"] == "John Doe"
-
-
-def test_export_excel(tmp_path):
-    path = tmp_path / "sigs.xlsx"
-    export_to_excel(_sample_signatures(), str(path))
-    assert path.exists()

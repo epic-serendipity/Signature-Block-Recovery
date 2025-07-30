@@ -6,13 +6,6 @@ import csv
 import json
 from typing import Iterable
 
-try:
-    from openpyxl import Workbook
-except ImportError as e:
-    raise RuntimeError(
-        "openpyxl is required for Excel export. Please install with `pip install openpyxl`."
-    ) from e
-
 from .core.models import Signature
 from template import log_message
 
@@ -76,43 +69,6 @@ def export_to_json(signatures: Iterable[Signature], path: str) -> None:
         )
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(data, fh, indent=2)
-
-def export_to_excel(signatures: Iterable[Signature], path: str) -> None:
-    """Write signatures to an Excel workbook."""
-    log_message("info", f"Exporting Excel to {path}")
-    wb = Workbook()
-    ws = wb.active
-    ws.append(
-        [
-            "source_msg_id",
-            "timestamp",
-            "text",
-            "name",
-            "title",
-            "company",
-            "phone",
-            "email",
-            "url",
-            "address",
-        ]
-    )
-    for sig in signatures:
-        m = sig.metadata
-        ws.append(
-            [
-                sig.source_msg_id,
-                sig.timestamp or "",
-                sig.text,
-                m.name or "",
-                m.title or "",
-                m.company or "",
-                m.phone or "",
-                m.email or "",
-                m.url or "",
-                m.address or "",
-            ]
-        )
-    wb.save(path)
 
 # main
 

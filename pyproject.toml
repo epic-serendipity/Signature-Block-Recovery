@@ -1,3 +1,15 @@
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "signature_recovery"
+version = "0.1.0"
+description = "Recover signature blocks from PST files"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = ["pypff>=0.6.0"]
+
+[project.scripts]
+recover-gui = "signature_recovery.gui.app:main"
+recover-signatures = "signature_recovery.cli.main:main"

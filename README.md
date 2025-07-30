@@ -12,7 +12,7 @@ This repository will contain tooling for extracting or reconstructing signature 
 ### GUI Installation
 
 1. **Download the Installer**  
-   Visit our [GitHub Releases page](https://github.com/epic-serendipity/Signature-Block-Recover/releases) and grab the latest:  
+   Visit our [GitHub Releases page](https://github.com/epic-serendipity/Signature-Block-Recovery/releases) and grab the latest:  
    - `SignatureRecoverySetup.msi` for Windows  
    - `SignatureRecovery.dmg` for macOS
 

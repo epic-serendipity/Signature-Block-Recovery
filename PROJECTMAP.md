@@ -9,6 +9,7 @@
   - `README.md` — quick-start guide
   - `AGENTS.md` — Codex automation rules
   - `PROJECTMAP.md` — project map
+  - `.gitignore` — ignore build artifacts and local files
 
 ### Signature Recovery Core
 - **Features**
@@ -79,6 +80,10 @@
 - **Files**
   - `RELEASE.md`
   - `SignatureRecoveryGui.spec`
+
+### Platform & Dependencies
+- **Dependencies**
+  - Third-party PST parser (`pypff`) is now an optional extra (`[pst]`) to ease install for non-technical users.
 
 ## Status
 

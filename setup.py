@@ -12,9 +12,10 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(),
     py_modules=["template"],
-    install_requires=[
-        "pypff>=0.6.0",  # PST parsing library
-    ],
+    install_requires=[],
+    extras_require={
+        "pst": ["pypff>=0.6.0"],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

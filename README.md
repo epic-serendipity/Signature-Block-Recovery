@@ -2,6 +2,8 @@
 
 Recover email signature blocks from PST files.
 
+To enable direct PST parsing via `pypff`, install with `pip install signature-recovery[pst]`.
+
 ## Quick Start
 
 1. **Download the Installer**  
@@ -13,9 +15,10 @@ Recover email signature blocks from PST files.
    recover-gui
    ```
 
-3. **Command Line**  
+3. **Command Line**
    Advanced users can work directly with the CLI:
    ```bash
-   pip install signature-recovery
+   pip install signature-recovery        # GUI & core features
+   pip install signature-recovery[pst]   # add PST parsing support via pypff
    recover-signatures extract --input my.pst --index sigs.db
    ```

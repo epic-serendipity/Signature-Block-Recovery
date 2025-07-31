@@ -28,7 +28,8 @@ class MetricsCollector:
     """Thread-safe collector for per-message metrics and aggregates."""
 
     def __init__(self) -> None:
-        self._lock = threading.Lock()
+        # Use reentrant lock to allow dump() to call summarize() safely
+        self._lock = threading.RLock()
         self._metrics: List[MessageMetric] = []
         self.start_time = time.time()
 

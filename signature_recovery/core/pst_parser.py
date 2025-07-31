@@ -11,17 +11,12 @@ import logging
 import time
 from typing import Iterator, List, Optional
 
+import pypff  # raises ImportError if dependency missing
+
 from signature_recovery.core.models import Message
-logger = logging.getLogger(__name__)
 from .logging import retry
 
-try:
-    import pypff
-except ImportError:  # pragma: no cover - optional dependency
-    pypff = None
-
-logger = logging.getLogger("PSTParser")
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class PSTParser:
@@ -33,21 +28,11 @@ class PSTParser:
             logger.error("PST file not found: %s", pst_path)
             raise FileNotFoundError(f"PST file not found: {pst_path}")
 
-        if pypff is None:
-            try:
-                import importlib
-
-                pypff_module = importlib.import_module("pypff")
-                globals()["pypff"] = pypff_module
-            except ImportError as e:  # pragma: no cover - dependency missing
-                raise RuntimeError(
-                    "PST parsing requires the optional pypff library. "
-                    "Install it via `pip install signature-recovery[pst]`, "
-                    "or see docs for building pypff."
-                ) from e
-
-        self._pst = pypff.file()
-        self._open(pst_path)
+        if hasattr(pypff, "open"):
+            self._pst = pypff.open(pst_path)
+        else:
+            self._pst = pypff.file()
+            self._open(pst_path)
         logger.info("Opened PST file: %s", pst_path)
 
     @retry(Exception, tries=3, delay=0.5)

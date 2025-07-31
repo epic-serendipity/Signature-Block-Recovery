@@ -20,10 +20,12 @@
 - **Files**
   - `signature_recovery/core/models.py`
   - `signature_recovery/core/pst_parser.py`
+      - imports `pypff` at module load; consumers must handle `ImportError`
   - `signature_recovery/core/extractor.py`
   - `signature_recovery/core/deduplicator.py`
   - `signature_recovery/core/parser.py`
   - `signature_recovery/core/metrics.py`
+      - uses `threading.RLock` to allow nested summaries during dump
   - `signature_recovery/core/logging.py`
   - `signature_recovery/core/config.py`
 
@@ -32,13 +34,13 @@
   - SQLite FTS backend (**Complete**)
 - **Files**
   - `signature_recovery/index/search_index.py`
-  - `signature_recovery/index/indexer.py`
+  - `signature_recovery/index/indexer.py` – lazy-imports PST parser to avoid optional dependency
 
 ### CLI
 - **Features**
   - `recover-signatures` extraction/query/export CLI (**Complete**)
 - **Files**
-  - `signature_recovery/cli/main.py`
+  - `signature_recovery/cli/main.py` – extraction mode handles missing `pypff` gracefully
   - `setup.py` / `pyproject.toml` — entry points
   - `requirements.txt` — placeholder; core deps in `pyproject.toml`, PST support via `[pst]` extra
   - `tests/test_recover_signatures.py`
@@ -65,6 +67,7 @@
 - **Files**
   - `tests/test_*` — unit tests
   - `tests/benchmarks/` — benchmark suite
+  - PST parser tests import the module after injecting fake `pypff`
   - `pytest.ini` — config skips benchmark directory
 
 ### CI Configuration

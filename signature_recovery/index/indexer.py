@@ -5,10 +5,10 @@ import logging
 from typing import Iterable
 
 from ..core.extractor import SignatureExtractor
-from ..core.pst_parser import PSTParser
-logger = logging.getLogger(__name__)
 from ..core.models import Signature
 from .search_index import SearchIndex
+
+logger = logging.getLogger(__name__)
 
 
 def add_batch(index: SearchIndex, signatures: Iterable[Signature]) -> None:
@@ -19,6 +19,8 @@ def add_batch(index: SearchIndex, signatures: Iterable[Signature]) -> None:
 def index_pst(pst_path: str, index: SearchIndex) -> None:
     """Extract signatures from ``pst_path`` and add them to ``index``."""
     logger.info("Indexing %s", pst_path)
+    from ..core.pst_parser import PSTParser
+
     parser = PSTParser(pst_path)
     extractor = SignatureExtractor()
     for msg in parser.iter_messages():

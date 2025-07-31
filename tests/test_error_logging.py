@@ -6,7 +6,6 @@ import time
 
 import pytest
 
-from signature_recovery.core.pst_parser import PSTParser
 from signature_recovery.core.extractor import SignatureExtractor
 from signature_recovery.core.deduplicator import dedupe_signatures
 from signature_recovery.index.search_index import SQLiteFTSIndex
@@ -42,6 +41,8 @@ def test_pst_parser_logs_warning(monkeypatch, tmp_path, caplog):
     pst = tmp_path / "dummy.pst"
     pst.write_text("dummy")
     _setup_fake_pst(monkeypatch)
+    from signature_recovery.core.pst_parser import PSTParser
+
     parser = PSTParser(str(pst))
     with caplog.at_level(logging.WARNING):
         list(parser.iter_messages())

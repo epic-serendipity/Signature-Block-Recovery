@@ -1,9 +1,8 @@
 import logging
-import types
-import builtins
 import sqlite3
 import time
 
+import pypff
 import pytest
 
 from signature_recovery.core.extractor import SignatureExtractor
@@ -11,7 +10,6 @@ from signature_recovery.core.deduplicator import dedupe_signatures
 from signature_recovery.index.search_index import SQLiteFTSIndex
 from signature_recovery.core.logging import retry
 from signature_recovery.core.models import Signature
-import sys
 
 
 def _setup_fake_pst(monkeypatch):
@@ -34,7 +32,7 @@ def _setup_fake_pst(monkeypatch):
 
             return Folder()
 
-    monkeypatch.setitem(sys.modules, "pypff", types.SimpleNamespace(file=lambda: FakePst()))
+    monkeypatch.setattr(pypff, "open", lambda path: FakePst())
 
 
 def test_pst_parser_logs_warning(monkeypatch, tmp_path, caplog):

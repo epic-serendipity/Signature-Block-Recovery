@@ -1,19 +1,18 @@
 import os
+import os
 import subprocess
 import sys
 from pathlib import Path
+
+import pypff  # type: ignore
 
 
 def test_benchmark_scripts(tmp_path):
     scripts = [
         "benchmark_large_pst.py",
         "benchmark_index_growth.py",
+        "profile_run.py",
     ]
-    try:
-        import pypff  # type: ignore
-        scripts.append("profile_run.py")
-    except Exception:
-        pass
     env = {"PYTHONPATH": str(Path(__file__).resolve().parents[2])}
     out_dir = Path(os.environ.get("BENCH_OUT_DIR", tmp_path))
     for script in scripts:

@@ -20,7 +20,7 @@
 - **Files**
   - `signature_recovery/core/models.py`
   - `signature_recovery/core/pst_parser.py`
-      - imports `pypff` at module load; consumers must handle `ImportError`
+      - imports `pypff` at module load; missing dependency raises immediately
   - `signature_recovery/core/extractor.py`
   - `signature_recovery/core/deduplicator.py`
   - `signature_recovery/core/parser.py`
@@ -34,15 +34,15 @@
   - SQLite FTS backend (**Complete**)
 - **Files**
   - `signature_recovery/index/search_index.py`
-  - `signature_recovery/index/indexer.py` – lazy-imports PST parser to avoid optional dependency
+  - `signature_recovery/index/indexer.py`
 
 ### CLI
 - **Features**
   - `recover-signatures` extraction/query/export CLI (**Complete**)
 - **Files**
-  - `signature_recovery/cli/main.py` – extraction mode handles missing `pypff` gracefully
+  - `signature_recovery/cli/main.py` – uses `PSTParser` directly
   - `setup.py` / `pyproject.toml` — entry points
-  - `requirements.txt` — placeholder; core deps in `pyproject.toml`, PST support via `[pst]` extra
+  - `requirements.txt` — references core dependency on `pypff`
   - `tests/test_recover_signatures.py`
 
 ### GUI
@@ -67,7 +67,7 @@
 - **Files**
   - `tests/test_*` — unit tests
   - `tests/benchmarks/` — benchmark suite
-  - PST parser tests import the module after injecting fake `pypff`
+  - PST parser tests patch `pypff.open` for deterministic fixtures
   - `pytest.ini` — config skips benchmark directory
 
 ### CI Configuration
@@ -88,7 +88,7 @@
 
 ### Platform & Dependencies
 - **Dependencies**
-  - PST parsing via `pypff` is optional; users must install `pypff` themselves (e.g., `conda install -c conda-forge pypff`) and then `pip install signature-recovery[pst]`
+  - PST parsing via `pypff` is mandatory; the package will not install or run without it
   - Development extras `[dev]` provide `pytest`, `pytest-timeout`, and `pyvirtualdisplay` for local testing
 
 ## Status

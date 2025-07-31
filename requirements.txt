@@ -1,2 +1,3 @@
 # Core dependencies are specified in pyproject.toml
-# Install optional PST support with: pip install '.[pst]'
+# PST parsing via pypff is required
+pypff>=0.6.0

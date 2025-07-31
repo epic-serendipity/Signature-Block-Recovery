@@ -12,13 +12,10 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(),
     py_modules=["template"],
-    install_requires=[],
+    install_requires=[
+        "pypff>=0.6.0",  # PST parsing is required
+    ],
     extras_require={
-        "pst": [
-            # pypff must be installed separately (see README).
-            # We list it here for metadata, but it isn’t on PyPI.
-            "pypff>=0.6.0",  # installation via conda or source required
-        ],
         "dev": [
             "pytest",
             "pytest-timeout>=2.0.0",

@@ -64,6 +64,7 @@
 - **Files**
   - `tests/test_*` — unit tests
   - `tests/benchmarks/` — benchmark suite
+  - `pytest.ini` — config skips benchmark directory
 
 ### CI Configuration
 - **Features**

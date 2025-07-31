@@ -16,7 +16,7 @@ jobs:
         run: |
           pip install -e .
           pip install pytest flask openpyxl pandas pyyaml pyvirtualdisplay
-      - name: Run tests
+      - name: Run unit & integration tests
         run: pytest -q
       - name: CLI help flags
         run: |

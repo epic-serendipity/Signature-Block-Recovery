@@ -61,6 +61,7 @@
 - **Features**
   - Unit and integration tests (**Complete**)
   - Benchmarks excluded from default runs (**Complete**)
+  - Global 300s per-test timeout via `pytest-timeout` (**Complete**)
 - **Files**
   - `tests/test_*` — unit tests
   - `tests/benchmarks/` — benchmark suite
@@ -85,6 +86,7 @@
 ### Platform & Dependencies
 - **Dependencies**
   - PST parsing via `pypff` is optional; users must install `pypff` themselves (e.g., `conda install -c conda-forge pypff`) and then `pip install signature-recovery[pst]`
+  - Development extras `[dev]` provide `pytest`, `pytest-timeout`, and `pyvirtualdisplay` for local testing
 
 ## Status
 

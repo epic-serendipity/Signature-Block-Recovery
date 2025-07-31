@@ -19,6 +19,11 @@ setup(
             # We list it here for metadata, but it isn’t on PyPI.
             "pypff>=0.6.0",  # installation via conda or source required
         ],
+        "dev": [
+            "pytest",
+            "pytest-timeout>=2.0.0",
+            "pyvirtualdisplay",
+        ],
     },
     classifiers=[
         "Programming Language :: Python :: 3",

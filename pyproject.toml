@@ -12,6 +12,11 @@ dependencies = []
 
 [project.optional-dependencies]
 pst = ["pypff>=0.6.0"]
+dev = [
+    "pytest",
+    "pytest-timeout>=2.0.0",
+    "pyvirtualdisplay",
+]
 
 [project.scripts]
 recover-gui = "signature_recovery.gui.app:main"

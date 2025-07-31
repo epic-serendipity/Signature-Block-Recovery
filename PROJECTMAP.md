@@ -42,7 +42,7 @@
 - **Files**
   - `signature_recovery/cli/main.py` – uses `PSTParser` directly
   - `setup.py` / `pyproject.toml` — entry points
-  - `requirements.txt` — references core dependency on `pypff`
+  - `requirements.txt` — development dependencies; `pypff` must be installed separately
   - `tests/test_recover_signatures.py`
 
 ### GUI
@@ -88,7 +88,7 @@
 
 ### Platform & Dependencies
 - **Dependencies**
-  - PST parsing via `pypff` is mandatory; the package will not install or run without it
+  - PST parsing via `pypff` is mandatory at runtime; install `pypff` separately before using the package
   - Development extras `[dev]` provide `pytest`, `pytest-timeout`, and `pyvirtualdisplay` for local testing
 
 ## Status

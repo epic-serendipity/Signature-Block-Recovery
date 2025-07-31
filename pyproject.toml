@@ -8,9 +8,8 @@ version = "0.1.0"
 description = "Recover signature blocks from PST files"
 readme = "README.md"
 requires-python = ">=3.8"
-dependencies = [
-    "pypff>=0.6.0",  # PST parsing is required
-]
+# Runtime requires `pypff`, but it must be installed separately
+dependencies = []
 
 [project.optional-dependencies]
 dev = [

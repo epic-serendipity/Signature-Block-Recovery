@@ -2,9 +2,30 @@
 
 Recover email signature blocks from PST files.
 
+### Pre-install PST support
+
+Before you install this package, you **must** install `pypff`.
+
+**Via Conda (strongly recommended)**
+```bash
+conda install -c conda-forge pypff
+```
+
+**Or build from source**
+```bash
+git clone https://github.com/libyal/libpff.git
+cd libpff
+./synclibs.sh
+./autogen.sh && ./configure && make && sudo make install
+cd bindings/python
+pip install .
+```
+
 ### Installation
 ```bash
 pip install signature-recovery
+# or for local dev:
+pip install -e .
 ```
 
 ## Quick Start

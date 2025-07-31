@@ -12,9 +12,8 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(),
     py_modules=["template"],
-    install_requires=[
-        "pypff>=0.6.0",  # PST parsing is required
-    ],
+    # Runtime requires `pypff`, but it must be installed separately
+    install_requires=[],
     extras_require={
         "dev": [
             "pytest",

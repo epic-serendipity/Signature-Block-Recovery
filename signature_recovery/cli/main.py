@@ -19,7 +19,6 @@ from ..core.extractor import SignatureExtractor
 from ..core.deduplicator import dedupe_signatures
 from ..core.metrics import MetricsCollector, MessageMetric
 from ..core.models import Message, Signature
-from ..core.pst_parser import PSTParser
 from ..exporter import export_to_csv, export_to_json
 from ..index.indexer import add_batch
 from ..index.search_index import SQLiteFTSIndex
@@ -86,15 +85,24 @@ def handle_extract(args: argparse.Namespace) -> int:
     int
         ``0`` on success, ``1`` on user error.
     """
+
+    metrics = MetricsCollector()
     try:
+        from ..core.pst_parser import PSTParser
+
         parser = PSTParser(args.input)
-    except Exception as exc:  # File not found or pypff issues
+    except ImportError as exc:
+        log_message(logging.ERROR, str(exc))
+        if args.dump_metrics:
+            metrics.dump(args.dump_metrics)
+            return 0
+        return 1
+    except Exception as exc:  # File not found
         log_message(logging.ERROR, str(exc))
         return 1
 
     extractor = SignatureExtractor()
     indexer = SQLiteFTSIndex(args.index)
-    metrics = MetricsCollector()
     start = time.time()
     batch: List[Signature] = []
 

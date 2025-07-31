@@ -12,9 +12,19 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(),
     py_modules=["template"],
-    install_requires=[
-        "pypff>=0.6.0",  # PST parsing library
-    ],
+    install_requires=[],
+    extras_require={
+        "pst": [
+            # pypff must be installed separately (see README).
+            # We list it here for metadata, but it isn’t on PyPI.
+            "pypff>=0.6.0",  # installation via conda or source required
+        ],
+        "dev": [
+            "pytest",
+            "pytest-timeout>=2.0.0",
+            "pyvirtualdisplay",
+        ],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

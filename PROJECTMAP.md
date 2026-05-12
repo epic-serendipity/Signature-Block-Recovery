@@ -47,10 +47,15 @@
 
 ### GUI
 - **Features**
+
   - `recover-gui` Tkinter interface with resilient queue-event handling (**Complete**)
 - **Files**
   - `signature_recovery/gui/app.py` — catches queue-processing exceptions and keeps UI controls responsive
   - `tests/test_recover_gui.py` — GUI behavior tests including queue error recovery path
+
+  - `recover-gui` Tkinter interface (**Complete**)
+  - Live feed normalizes noisy prefixes and suppresses duplicate entries (**Complete**)
+  - Live feed uses a full-width colored header for improved tab-like visibility (**Complete**)
 
 ### Exporter
 - **Features**

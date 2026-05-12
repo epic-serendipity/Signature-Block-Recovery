@@ -47,10 +47,10 @@
 
 ### GUI
 - **Features**
-  - `recover-gui` Tkinter interface (**Complete**)
+  - `recover-gui` Tkinter interface with resilient queue-event handling (**Complete**)
 - **Files**
-  - `signature_recovery/gui/app.py`
-  - `tests/test_recover_gui.py`
+  - `signature_recovery/gui/app.py` — catches queue-processing exceptions and keeps UI controls responsive
+  - `tests/test_recover_gui.py` — GUI behavior tests including queue error recovery path
 
 ### Exporter
 - **Features**

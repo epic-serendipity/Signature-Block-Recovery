@@ -400,19 +400,31 @@ class App(tk.Tk):
         except queue.Empty:
             pass
         else:
-            if isinstance(item, tuple) and item[0] == "progress":
-                count, total = item[1], item[2]
-                self.progress_var.set(f"Processing PST {count} of {total}...")
-            elif item == "complete":
-                if hasattr(self, "progress_win"):
-                    self.progress_win.destroy()
-                self._seed_filters()
-            else:
-                results = item
-                self._display_results(results)
+            try:
+                self._handle_queue_item(item)
+            except Exception:
+                log_message("error", "Failed to process result queue item", exc_info=True)
                 self.search_panel.enable()
                 self.pagination_panel.enable()
         self.poll_id = self.after(100, self._poll_queue)
+
+    def _handle_queue_item(self, item) -> None:
+        """Handle queue events for progress, completion, and search results."""
+        if isinstance(item, tuple) and item and item[0] == "progress":
+            count, total = item[1], item[2]
+            if hasattr(self, "progress_var"):
+                self.progress_var.set(f"Processing PST {count} of {total}...")
+            return
+        if item == "complete":
+            if hasattr(self, "progress_win"):
+                self.progress_win.destroy()
+            self._seed_filters()
+            return
+
+        results = item
+        self._display_results(results)
+        self.search_panel.enable()
+        self.pagination_panel.enable()
 
     def _display_results(self, results) -> None:
         """Store and display search results, updating filter options."""

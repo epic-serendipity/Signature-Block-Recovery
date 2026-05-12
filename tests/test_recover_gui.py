@@ -154,3 +154,17 @@ def test_confidence_slider(tmp_path, display):
         time.sleep(0.05)
     assert len(app.results) == 1
     app.close()
+
+
+def test_poll_queue_recovers_from_handler_error(tmp_path, display, caplog):
+    idx = _build_index(tmp_path)
+    app = App(idx)
+    app.queue.put(object())
+
+    def boom(_item):
+        raise AttributeError("missing callback")
+
+    app._handle_queue_item = boom
+    app._poll_queue()
+    assert any("Failed to process result queue item" in r.message for r in caplog.records)
+    app.close()

@@ -261,18 +261,46 @@ class DetailPanel(tk.LabelFrame):
         self.text.config(state=tk.DISABLED)
 
 
-class AlertsPanel(tk.LabelFrame):
+class AlertsPanel(tk.Frame):
     """Display recent warning/error log messages."""
 
     def __init__(self, master: tk.Misc) -> None:
-        super().__init__(master, text="Alerts")
+        super().__init__(master)
+        self._seen_entries: set[str] = set()
+        self.header = tk.Label(
+            self,
+            text="Live Feed",
+            bg="#2b579a",
+            fg="white",
+            anchor="w",
+            padx=8,
+            pady=4,
+        )
+        self.header.pack(fill=tk.X)
         self.listbox = tk.Listbox(self, height=4)
         self.listbox.pack(fill=tk.BOTH, expand=True)
 
     def add_alert(self, msg: str) -> None:
-        self.listbox.insert(0, msg)
+        normalized = self._normalize_message(msg)
+        if normalized in self._seen_entries:
+            return
+        self._seen_entries.add(normalized)
+        self.listbox.insert(0, normalized)
         if self.listbox.size() > 100:
+            removed = self.listbox.get(100, tk.END)
             self.listbox.delete(100, tk.END)
+            for item in removed:
+                self._seen_entries.discard(item)
+
+    @staticmethod
+    def _normalize_message(msg: str) -> str:
+        """Normalize live feed text and remove noisy category prefixes."""
+        clean = " ".join(msg.split())
+        for prefix in ("System:", "Computers"):
+            clean = clean.replace(prefix, "").strip(" -:")
+        while "  " in clean:
+            clean = clean.replace("  ", " ")
+        return clean
 
 
 class _GuiLogHandler(logging.Handler):
@@ -340,7 +368,7 @@ class App(tk.Tk):
         self.alerts_panel.pack(fill=tk.BOTH, expand=False, padx=5, pady=2)
 
         handler = _GuiLogHandler(self.alerts_panel)
-        handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
+        handler.setFormatter(logging.Formatter('%(message)s'))
         logging.getLogger().addHandler(handler)
 
         # Seed filter lists using all signatures in the index

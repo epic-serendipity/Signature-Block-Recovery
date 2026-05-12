@@ -48,8 +48,10 @@
 ### GUI
 - **Features**
   - `recover-gui` Tkinter interface (**Complete**)
+  - Live feed normalizes noisy prefixes and suppresses duplicate entries (**Complete**)
+  - Live feed uses a full-width colored header for improved tab-like visibility (**Complete**)
 - **Files**
-  - `signature_recovery/gui/app.py`
+  - `signature_recovery/gui/app.py` — search/filter/results panes, extraction workflow, and live feed formatting
   - `tests/test_recover_gui.py`
 
 ### Exporter

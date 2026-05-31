@@ -4,8 +4,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from signature_recovery.index.search_index import SQLiteFTSIndex
-from signature_recovery.core.models import Signature
+from signature_recovery.core.models import Message, Signature
 
 
 def _build_index(tmp_path: Path) -> Path:
@@ -55,63 +57,67 @@ def test_query_verbose_confidence(tmp_path):
     assert "0.90" in res.stdout or "0.9" in res.stdout
 
 
-def test_extract_query_export_flow(tmp_path):
+def test_extract_query_export_flow(tmp_path, monkeypatch, capsys):
     pst = tmp_path / "dummy.pst"
     pst.write_text("dummy")
     db = tmp_path / "out.db"
     metrics = tmp_path / "metrics.json"
     csv_out = tmp_path / "out.csv"
 
-    env = os.environ.copy()
-    env["PYTHONPATH"] = f"{Path(__file__).parent}:{env.get('PYTHONPATH','')}"
+    msgs = [
+        Message(body="Hi\n--\nJohn Doe\nEngineer", msg_id="1", timestamp=1),
+        Message(body="Hello\n--\nJane Smith\nManager", msg_id="2", timestamp=2),
+    ]
 
-    res = _run([
-        sys.executable,
-        "-m",
-        "signature_recovery.cli.main",
-        "--batch-size",
-        "1",
-        "--metrics",
-        "--dump-metrics",
-        str(metrics),
-        "extract",
-        "--input",
-        str(pst),
-        "--index",
-        str(db),
-    ], env=env)
-    assert res.returncode == 0
+    class FakeParser:
+        def __init__(self, path):
+            pass
+
+        def iter_messages(self):
+            for m in msgs:
+                yield m
+
+    from signature_recovery.cli import main as cli_main
+    monkeypatch.setattr(cli_main, "PSTParser", FakeParser)
+
+    with pytest.raises(SystemExit) as e:
+        cli_main.main([
+            "--batch-size",
+            "1",
+            "--metrics",
+            "--dump-metrics",
+            str(metrics),
+            "extract",
+            "--input",
+            str(pst),
+            "--index",
+            str(db),
+        ])
+    assert e.value.code == 0
     assert db.exists()
+    out = capsys.readouterr().out
+    assert "Processed" in out
     data = json.loads(metrics.read_text())
     assert data["summary"]["total_messages"] == 2
     assert data["summary"]["signatures_extracted"] >= 2
-    assert "Processed" in res.stdout
 
-    res = _run([
-        sys.executable,
-        "-m",
-        "signature_recovery.cli.main",
-        "query",
-        "--index",
-        str(db),
-        "--q",
-        "John",
-    ])
-    assert "John Doe" in res.stdout
+    with pytest.raises(SystemExit) as e:
+        cli_main.main(["query", "--index", str(db), "--q", "John"])
+    assert e.value.code == 0
+    out = capsys.readouterr().out
+    assert "John Doe" in out
 
-    res = _run([
-        sys.executable,
-        "-m",
-        "signature_recovery.cli.main",
-        "export",
-        "--index",
-        str(db),
-        "--format",
-        "csv",
-        "--out",
-        str(csv_out),
-    ])
-    assert res.returncode == 0
+    with pytest.raises(SystemExit) as e:
+        cli_main.main([
+            "export",
+            "--index",
+            str(db),
+            "--format",
+            "csv",
+            "--out",
+            str(csv_out),
+        ])
+    assert e.value.code == 0
     assert csv_out.exists()
     content = csv_out.read_text()
     assert "source_msg_id" in content

@@ -1,46 +1,20 @@
-import builtins
-import sys
-from pathlib import Path
-
-import importlib
+import pypff
 import pytest
 
+from signature_recovery.core.pst_parser import PSTParser
 
-def test_nonexistent_file(monkeypatch):
-    _setup_fake_pst(monkeypatch)
-    pst_module = importlib.reload(importlib.import_module("signature_recovery.core.pst_parser"))
+
+def test_nonexistent_file():
     with pytest.raises(FileNotFoundError):
-        pst_module.PSTParser("/no/such/file.pst")
-
-
-def test_missing_pypff(monkeypatch, tmp_path):
-    # create dummy pst file so path check passes
-    pst = tmp_path / "dummy.pst"
-    pst.write_text("dummy")
-
-    original_import = builtins.__import__
-
-    def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
-        if name == "pypff":
-            raise ImportError("not installed")
-        return original_import(name, globals, locals, fromlist, level)
-
-    monkeypatch.setitem(sys.modules, "pypff", None)
-    monkeypatch.delitem(sys.modules, "pypff", raising=False)
-    monkeypatch.setattr(builtins, "__import__", fake_import)
-    monkeypatch.delitem(sys.modules, "signature_recovery.core.pst_parser", raising=False)
-
-    with pytest.raises(ImportError):
-        importlib.import_module("signature_recovery.core.pst_parser")
+        PSTParser("/no/such/file.pst")
 
 
 def test_iter_messages_filters(monkeypatch, tmp_path):
     pst = tmp_path / "dummy.pst"
     pst.write_text("dummy")
     _setup_fake_pst(monkeypatch)
-    pst_module = importlib.reload(importlib.import_module("signature_recovery.core.pst_parser"))
 
-    parser = pst_module.PSTParser(str(pst))
+    parser = PSTParser(str(pst))
     msgs = list(parser.iter_messages(folders=["Inbox"], start=150, end=250))
     assert len(msgs) == 1
     assert msgs[0].body == "B"
@@ -50,17 +24,14 @@ def test_corrupt_message_skipped(monkeypatch, tmp_path):
     pst = tmp_path / "dummy.pst"
     pst.write_text("dummy")
     _setup_fake_pst(monkeypatch)
-    pst_module = importlib.reload(importlib.import_module("signature_recovery.core.pst_parser"))
 
-    parser = pst_module.PSTParser(str(pst))
+    parser = PSTParser(str(pst))
     msgs = list(parser.iter_messages())
     # one corrupt message should be skipped
     assert len(msgs) == 3
 
 
 def _setup_fake_pst(monkeypatch):
-    import types
-
     class FakeMessage:
         def __init__(self, body, ts, bad=False):
             self._body = body
@@ -108,5 +79,5 @@ def _setup_fake_pst(monkeypatch):
         def get_root_folder(self):
             return root
 
-    monkeypatch.setitem(sys.modules, "pypff", types.SimpleNamespace(file=lambda: FakePst()))
+    monkeypatch.setattr(pypff, "open", lambda path: FakePst())
 

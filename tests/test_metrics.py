@@ -1,7 +1,8 @@
-from signature_recovery.core.metrics import MetricsCollector, MessageMetric
 import json
-import subprocess
-import sys
+import pytest
+
+from signature_recovery.core.metrics import MetricsCollector, MessageMetric
+from signature_recovery.core.models import Message
 
 
 def test_metrics_summarize(tmp_path):
@@ -26,27 +27,42 @@ def test_metrics_dump(tmp_path):
     assert data["per_message"][0]["msg_id"] == "1"
 
 
-def test_cli_dump_metrics(tmp_path):
+def test_cli_dump_metrics(tmp_path, monkeypatch):
     pst = tmp_path / "dummy.pst"
     pst.write_text("dummy")
     db = tmp_path / "out.db"
     metrics_path = tmp_path / "metrics.json"
-    cmd = [
-        sys.executable,
-        "-m",
-        "signature_recovery.cli.main",
-        "--batch-size",
-        "1",
-        "--dump-metrics",
-        str(metrics_path),
-        "extract",
-        "--input",
-        str(pst),
-        "--index",
-        str(db),
+
+    msgs = [
+        Message(body="Hi\n--\nJohn Doe\nEngineer", msg_id="1", timestamp=1),
+        Message(body="Hello\n--\nJane Smith\nManager", msg_id="2", timestamp=2),
     ]
-    res = subprocess.run(cmd, capture_output=True, text=True)
-    assert res.returncode == 0
+
+    class FakeParser:
+        def __init__(self, path):
+            pass
+
+        def iter_messages(self):
+            for m in msgs:
+                yield m
+
+    from signature_recovery.cli import main as cli_main
+    monkeypatch.setattr(cli_main, "PSTParser", FakeParser)
+
+    with pytest.raises(SystemExit) as e:
+        cli_main.main([
+            "--batch-size",
+            "1",
+            "--dump-metrics",
+            str(metrics_path),
+            "extract",
+            "--input",
+            str(pst),
+            "--index",
+            str(db),
+        ])
+    assert e.value.code == 0
     assert metrics_path.exists()
     data = json.loads(metrics_path.read_text())
     assert "summary" in data and "per_message" in data
+

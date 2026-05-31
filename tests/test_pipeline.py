@@ -1,4 +1,5 @@
 from signature_recovery.core.models import Message
+from signature_recovery.core.models import Message
 from signature_recovery.core.extractor import SignatureExtractor
 from signature_recovery.core.deduplicator import dedupe_signatures
 
@@ -19,14 +20,6 @@ def _mock_parser(monkeypatch):
                 yield m
 
     import os
-    import types, sys
-    class FakePst:
-        def open(self, path):
-            pass
-        def get_root_folder(self):
-            return None
-
-    monkeypatch.setitem(sys.modules, "pypff", types.SimpleNamespace(file=lambda: FakePst()))
     from signature_recovery.core import pst_parser as pst_module
     monkeypatch.setattr(pst_module, "PSTParser", FakeParser)
     globals()["PSTParser"] = FakeParser

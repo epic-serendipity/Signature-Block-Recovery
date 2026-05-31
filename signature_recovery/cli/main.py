@@ -22,6 +22,7 @@ from ..core.models import Message, Signature
 from ..exporter import export_to_csv, export_to_json
 from ..index.indexer import add_batch
 from ..index.search_index import SQLiteFTSIndex
+from ..core.pst_parser import PSTParser
 
 # Logging
 
@@ -88,17 +89,11 @@ def handle_extract(args: argparse.Namespace) -> int:
 
     metrics = MetricsCollector()
     try:
-        from ..core.pst_parser import PSTParser
-
         parser = PSTParser(args.input)
-    except ImportError as exc:
+    except Exception as exc:  # File not found or other issues
         log_message(logging.ERROR, str(exc))
         if args.dump_metrics:
             metrics.dump(args.dump_metrics)
-            return 0
-        return 1
-    except Exception as exc:  # File not found
-        log_message(logging.ERROR, str(exc))
         return 1
 
     extractor = SignatureExtractor()
